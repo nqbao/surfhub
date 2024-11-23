@@ -1,3 +1,6 @@
 venv
 dist
+__pycache__
 src/*.egg-info
+env.sh
+sandbox
