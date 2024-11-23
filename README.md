@@ -30,3 +30,4 @@ Supported Scrapper provider
   * Local (run on your laptop)
   * Browserless
   * Zyte
+  * Crawlspace

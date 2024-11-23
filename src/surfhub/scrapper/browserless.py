@@ -7,10 +7,11 @@ class BrowserlessScrapper(BaseScrapper):
     
     https://docs.browserless.io/http-apis/scrape
     """
-    default_api_url = "https://chrome.browserless.io/scrape"
+    default_api_url = "https://chrome.browserless.io"
     
     def scrape(self, url, options = None) -> bytes:
-        api_url = self.endpoint + "?token=" + self.api_key
+        # TODO: we can also use the /content api
+        api_url = self.endpoint + "/scrape?token=" + self.api_key
         resp = httpx.post(api_url, json={
             "url": url,
             "elements": [{"selector": "body"}],
