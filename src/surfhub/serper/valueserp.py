@@ -26,6 +26,11 @@ class ValueSerp(BaseSerp):
             if options.extra_options:
                 params.update(options.extra_options)
                 
+            if options.location:
+                params["location"] = options.location
+                
+            # params['include_answer_box'] = 'true'
+
         if page is not None:
             params["page"] = page
             

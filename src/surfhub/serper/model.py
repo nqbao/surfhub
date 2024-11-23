@@ -6,6 +6,7 @@ from surfhub.cache import Cache
 class SerpRequestOptions(BaseModel):
     lang: Optional[str]
     country: Optional[str]
+    location: Optional[str]
     extra_options: Optional[dict]
 
 class SerpResult(BaseModel):
