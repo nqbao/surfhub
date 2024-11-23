@@ -1,6 +1,7 @@
 import os
 from pydantic import BaseModel
 from typing import Optional, List
+from surfhub.cache import Cache
 
 class SerpRequestOptions(BaseModel):
     lang: Optional[str]
@@ -16,12 +17,14 @@ class SerpResult(BaseModel):
 
 class BaseSerp:
     default_api_url : str = None
+    cache : Optional[Cache] = None
     
-    def __init__(self, api_key : str = None):
+    def __init__(self, api_key : str = None, cache : Optional[Cache] = None):
         if not self.default_api_url:
             raise NotImplementedError("default_api_url is not set")
         
         self._api_key = api_key
+        self.cache = cache
     
     def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> List[SerpResult]:
         raise NotImplementedError()
@@ -36,4 +39,4 @@ class BaseSerp:
 
     @property
     def timeout(self) -> int:
-        return int(os.environ.get("SERP_HTTP_TIMEOUT", 10))
+        return int(os.environ.get("SERP_HTTP_TIMEOUT", 30))
