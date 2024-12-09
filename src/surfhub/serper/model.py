@@ -7,6 +7,7 @@ class SerpRequestOptions(BaseModel):
     lang: Optional[str]
     country: Optional[str]
     location: Optional[str]
+    google_domain: Optional[str]
     extra_options: Optional[dict]
 
 class SerpResult(BaseModel):
@@ -29,6 +30,9 @@ class BaseSerp:
     
     def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> List[SerpResult]:
         raise NotImplementedError()
+
+    async def async_serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> List[SerpResult]:
+        return self.serp(query, page, num, options)
 
     @property
     def endpoint(self) -> str:

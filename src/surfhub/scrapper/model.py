@@ -36,4 +36,3 @@ class BaseScrapper:
     @property
     def endpoint(self) -> str:
         return os.environ.get("SCAPPER_API_URL", self.default_api_url)
-

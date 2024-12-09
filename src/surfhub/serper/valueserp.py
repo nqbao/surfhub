@@ -22,13 +22,16 @@ class ValueSerp(BaseSerp):
                 
             if options.country:
                 params["gl"] = options.country
-                
-            if options.extra_options:
-                params.update(options.extra_options)
-                
+
             if options.location:
                 params["location"] = options.location
                 
+            if options.google_domain:
+                params["google_domain"] = options.google_domain
+                
+            # anything to pass to the API
+            if options.extra_options:
+                params.update(options.extra_options)
             # params['include_answer_box'] = 'true'
 
         if page is not None:

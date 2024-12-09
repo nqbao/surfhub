@@ -13,8 +13,9 @@ s.serp("hello world")
 Supported SERP provider:
   * [ValueSerp](https://valueserp.com/)
   * Google Custom Search
+  * [Serper](https://serper.dev/)
 
-TODO: [Serper](https://serper.dev/), [SerpAPI](https://serpapi.com/), DuckDuckGo
+TODO: [SerpAPI](https://serpapi.com/), DuckDuckGo
 
 
 Example to use scrapper
@@ -27,7 +28,9 @@ s.scrape("https://webscraper.io/test-sites/e-commerce/allinone")
 ```
 
 Supported Scrapper provider
-  * Local (run on your laptop)
+  * Local (run on your laptop) with proxy support
   * Browserless
   * Zyte
   * Crawlspace
+
+TODO: ScrappingBee

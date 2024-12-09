@@ -1,7 +1,8 @@
 import os
-from .model import *
-from .valueserp import *
-from .google import *
+from .model import BaseSerp, SerpResult, SerpRequestOptions
+from .valueserp import ValueSerp
+from .google import GoogleCustomSearch
+from .serper import SerperDev
 from surfhub.cache import get_cache
 
 
@@ -17,6 +18,9 @@ def get_serp(provider=None, cache=None, **kwargs) -> BaseSerp:
         return ValueSerp(cache=cache, **kwargs)
     
     if provider == "google":
-        return GoogleSerp(cache=cache, **kwargs)
+        return GoogleCustomSearch(cache=cache, **kwargs)
+    
+    if provider == "serper":
+        return SerperDev(cache=cache, **kwargs)
     
     raise ValueError(f"Unknown provider: {provider}")

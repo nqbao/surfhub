@@ -1,28 +1,20 @@
 from typing import List, Optional
-from .model import *
 import httpx
+from .model import SerpRequestOptions, SerpResult, BaseSerp
 from surfhub.utils import hash_dict
 
-class GoogleCustomSearch(BaseSerp):
+class SerperDev(BaseSerp):
     """
-    Search Google via Google Custom Search API
+    Search Google via serper.dev API
     """
     
-    default_api_url = "https://www.googleapis.com/customsearch/v1"
+    default_api_url = "https://google.serper.dev/search"
     
     def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> List[SerpResult]:
         params = {
             "q": query,
+            "apiKey": self.api_key
         }
-        
-        if not self.api_key:
-            raise ValueError("Please provide a Google API key")
-        if ":" not in self.api_key:
-            raise ValueError("Please provider api key in the format cx:key")
-
-        cx, key = self.api_key.split(":", 2)
-        params["key"] = key
-        params["cx"] = cx
         
         if options:
             if options.lang:
@@ -31,15 +23,23 @@ class GoogleCustomSearch(BaseSerp):
             if options.country:
                 params["gl"] = options.country
                 
+            if options.location:
+                params["location"] = options.location
+                
+            if options.google_domain:
+                params["google_domain"] = options.google_domain
+                
+            # anything to pass to the API
             if options.extra_options:
                 params.update(options.extra_options)
-                
+            # params['include_answer_box'] = 'true'
+
         if page is not None:
             params["page"] = page
             
         if num is not None:
             params["num"] = num
-        
+            
         cache_key = None
         resp = None
         if self.cache:
@@ -48,13 +48,10 @@ class GoogleCustomSearch(BaseSerp):
         
         if resp is None:
             resp = httpx.get(self.endpoint, params=params, timeout=self.timeout).json()
-        
-        if not resp['request_info']['success']:
-            raise Exception(resp['request_info']['message'])
-        
+
         if self.cache and cache_key:
             self.cache.set(cache_key, resp)
-        
+
         return [
             SerpResult(
                 title=i.get("title"),
@@ -62,5 +59,5 @@ class GoogleCustomSearch(BaseSerp):
                 snippet=i.get("snippet", ""),
                 prefix=i.get("prefix", "")
             )
-            for i in resp['items']
+            for i in resp['organic']
         ]
