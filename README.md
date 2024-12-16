@@ -1,13 +1,18 @@
 # surfhub
-A python library for surfing and crawling website
+A python library for surfing and crawling website. 
 
+This library provides two basic components for you to run google search and getting result
 
-Example to use serper
+* Seprer is a API to provide structured data from Google search. There are many serper providers such as ValueSerp, Serper, etc
+* Scraper is an API to extract HTML from website. You can run it on your own laptop, but it is better to use providers such as Zyte, or Browserless
+
+To start, you can visit [Serper](https://serper.dev) to get a free account.
 
 ```
 import surhub.serp as serp
-s = serp.get_serp("valueserp", api_key="yourkey")
-s.serp("hello world")
+
+s = serp.get_serp("serper", api_key="yourkey")
+print(s.serp("hello world").items)
 ```
 
 Supported SERP provider:
