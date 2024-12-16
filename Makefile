@@ -30,7 +30,7 @@ install:
 # Run tests
 test:
 	@echo "Running tests..."
-	python -m unittest discover tests
+	python -m pytest
 
 # Format code using Black
 format:
