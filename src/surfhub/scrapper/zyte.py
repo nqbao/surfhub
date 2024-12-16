@@ -10,7 +10,7 @@ class ZyteScrapper(BaseScrapper):
     def prepare_request(self, url, options = None) -> httpx.Request:
         return httpx.Request(
             "POST", 
-            self.endpoint,
+            self.api_url,
             json={
                 "url": url,  
                 "browserHtml": True,

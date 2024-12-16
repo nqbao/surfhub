@@ -1,18 +1,13 @@
-import os
 from .model import BaseSerp, SerpResult, SerpRequestOptions
 from .valueserp import ValueSerp
 from .google import GoogleCustomSearch
 from .serper import SerperDev
-from surfhub.cache import get_cache
+from surfhub.cache.base import Cache
 
 
-def get_serp(provider=None, cache=None, **kwargs) -> BaseSerp:
-    provider = provider or os.environ.get("SERP_PROVIDER")
+def get_serp(provider, cache: Cache=None, **kwargs) -> BaseSerp:
     if not provider:
         raise ValueError("Please provide a SERP provider")
-     
-    if not cache and os.environ.get("SERP_CACHE_TTL"):
-        cache = get_cache(default_ttl=int(os.environ.get("SERP_CACHE_TTL")))
      
     if provider == "valueserp":
         return ValueSerp(cache=cache, **kwargs)

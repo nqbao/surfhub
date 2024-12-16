@@ -1,5 +1,4 @@
 import abc
-import os
 import httpx
 from pydantic import BaseModel
 from typing import Optional, List
@@ -21,7 +20,8 @@ class SerpResult(BaseModel):
 
 class SerpResponse(BaseModel):
     items: List[SerpResult]
-    
+    cached : Optional[bool]
+
 class SerpApi(abc.ABC):
     @abc.abstractmethod
     def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
@@ -34,7 +34,10 @@ class SerpApi(abc.ABC):
 class BaseSerp(SerpApi):
     default_api_url : str = None
     cache : Optional[Cache] = None
-    
+    _api_key : str = None
+    _api_url : str = None
+    _timeout : int = 30
+
     def __init__(self, api_key : str = None, cache : Optional[Cache] = None):
         if not self.default_api_url:
             raise NotImplementedError("default_api_url is not set")
@@ -46,39 +49,43 @@ class BaseSerp(SerpApi):
         params = self.get_serp_params(query, page, num, options)
         
         cache_key = None
-        resp = None
+        items  = None
+        cached = False
         if self.cache:
             cache_key = hash_dict({**params, "endpoint": self.endpoint, "provider": self.__class__.__name__})
-            resp = self.cache.get(cache_key)
+            items = self.cache.get(cache_key)
+            cached = items is not None
         
-        if resp is None:
+        if items is None:
             resp = httpx.get(self.endpoint, params=params, timeout=self.timeout).json()
+            items = self.parse_result(resp)
         
         if self.cache and cache_key:
-            self.cache.set(cache_key, resp)
+            self.cache.set(cache_key, items)
         
-        items = self.parse_result(resp)
-        return SerpResponse(items=items)
+        return SerpResponse(items=items, cached=cached)
 
     async def async_serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
         params = self.get_serp_params(query, page, num, options)
         
         cache_key = None
-        resp = None
+        items = None
+        cached = False
         if self.cache:
             cache_key = hash_dict({**params, "endpoint": self.endpoint, "provider": self.__class__.__name__})
-            resp = self.cache.get(cache_key)
+            items = self.cache.get(cache_key)
+            cached = items is not None
         
-        if resp is None:
+        if items is None:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(self.endpoint, params=params, timeout=self.timeout)
                 resp = resp.json()
+                items = self.parse_result(resp)
         
         if self.cache and cache_key:
-            self.cache.set(cache_key, resp)
+            self.cache.set(cache_key, items)
         
-        items = self.parse_result(resp)
-        return SerpResponse(items=items)
+        return SerpResponse(items=items, cached=cached)
 
     @abc.abstractmethod
     def get_serp_params(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> dict:
@@ -90,12 +97,24 @@ class BaseSerp(SerpApi):
 
     @property
     def endpoint(self) -> str:
-        return os.environ.get("SERP_API_URL", self.default_api_url)
+        return self._api_url or self.default_api_url
+    
+    @endpoint.setter
+    def endpoint(self, value : str):
+        self._api_url = value
 
     @property
     def api_key(self) -> str:
-        return self._api_key or os.environ.get("SERP_API_KEY")
+        return self._api_key
+    
+    @api_key.setter
+    def api_key(self, value : str):
+        self._api_key = value
 
     @property
     def timeout(self) -> int:
-        return int(os.environ.get("SERP_HTTP_TIMEOUT", 30))
+        return self._timeout
+    
+    @timeout.setter
+    def timeout(self, value : int):
+        self._timeout = value

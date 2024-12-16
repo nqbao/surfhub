@@ -11,7 +11,7 @@ class BrowserlessScrapper(BaseScrapper):
     
     def prepare_request(self, url, options = None):
         # TODO: we can also use the /content api
-        api_url = self.endpoint + "/scrape?token=" + self.api_key
+        api_url = self.api_url + "/scrape?token=" + self.api_key
         return httpx.Request(
             "POST", 
             api_url,

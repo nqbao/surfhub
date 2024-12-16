@@ -1,10 +1,10 @@
-from .model import BaseScrapper
+from .model import Scrapper
 from .local import LocalScrapper
 from .browserless import BrowserlessScrapper
 from .zyte import ZyteScrapper
 from .crawlbase import CrawlbaseScrapper
 
-def get_scrapper(provider=None, api_key=None, **kwargs) -> BaseScrapper:
+def get_scrapper(provider, api_key=None, **kwargs) -> Scrapper:
     if provider == "local":
         return LocalScrapper(**kwargs)
     elif provider == "browserless":

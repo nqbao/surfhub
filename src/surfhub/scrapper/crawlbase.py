@@ -14,7 +14,7 @@ class CrawlbaseScrapper(BaseScrapper):
     def prepare_request(self, url, options = None) -> httpx.Request:
         return httpx.Request(
             "GET", 
-            self.endpoint, 
+            self.api_url, 
             params={
                 "token": self.api_key,
                 "url": url,

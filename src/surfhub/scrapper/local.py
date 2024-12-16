@@ -1,8 +1,11 @@
 from .model import Scrapper, ScrapperOptions, ScrapperResponse
-import os
 import httpx
 
 class LocalScrapper(Scrapper):
+    _http_proxy : str = ""
+    _https_proxy : str = ""
+    _verify_ca : bool = True
+    
     """
     A scrapper that runs on local
     """
@@ -32,12 +35,24 @@ class LocalScrapper(Scrapper):
 
     @property
     def http_proxy(self) -> str:
-        return os.environ.get("SCRAPPER_HTTP_PROXY", "")
+        return self._http_proxy
+    
+    @http_proxy.setter
+    def http_proxy(self, value: str):
+        self._http_proxy = value
 
     @property
     def https_proxy(self) -> str:
-        return os.environ.get("SCRAPPER_HTTPS_PROXY", "")
+        return self._https_proxy
+    
+    @https_proxy.setter
+    def https_proxy(self, value: str):
+        self._https_proxy = value
     
     @property
     def verify_ca(self) -> int:
-        return os.environ.get("SCRAPPER_PROXY_VERIFY", "1") in ["1", "true", "yes"]
+        return self._verify_ca
+    
+    @verify_ca.setter
+    def verify_ca(self, value: int):
+        self._verify_ca = value

@@ -15,7 +15,7 @@ class ScrapperResponse(BaseModel):
         return self.content.decode(encoding)
 
 class Scrapper(abc.ABC):
-    _timeout = None
+    _timeout : int = 30
     
     @abc.abstractmethod
     def scrape(self, url: str, options: ScrapperOptions = None) -> ScrapperResponse:
@@ -30,19 +30,16 @@ class Scrapper(abc.ABC):
         """
         Timeout in seconds for the HTTP request
         """
-        
-        if self._timeout is not None:
-            return self._timeout
-
-        return int(os.environ.get("SCRAPPER_HTTP_TIMEOUT", 30))
+        return self._timeout
     
     @timeout.setter
     def timeout(self, value: int):
         self._timeout = value
 
-
 class BaseScrapper(Scrapper):
     default_api_url = ""
+    _api_key : str = None
+    _api_url : str = None
     
     def __init__(self, api_key: str = None):
         self._api_key = api_key
@@ -92,8 +89,16 @@ class BaseScrapper(Scrapper):
 
     @property
     def api_key(self) -> str:
-        return self._api_key or os.environ.get("SCRAPPER_API_KEY", "")
+        return self._api_key
+    
+    @api_key.setter
+    def api_key(self, value: str):
+        self._api_key = value
 
     @property
-    def endpoint(self) -> str:
-        return os.environ.get("SCAPPER_API_URL", self.default_api_url)
+    def api_url(self) -> str:
+        return self._api_url or self.default_api_url
+    
+    @api_url.setter
+    def api_url(self, value: str):
+        self._api_url = value
