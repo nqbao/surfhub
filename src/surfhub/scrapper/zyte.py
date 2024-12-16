@@ -1,4 +1,4 @@
-from .model import BaseScrapper
+from .model import BaseScrapper, ScrapperResponse
 import httpx
 
 class ZyteScrapper(BaseScrapper):
@@ -7,18 +7,24 @@ class ZyteScrapper(BaseScrapper):
     """
     default_api_url = "https://api.zyte.com/v1/extract"
     
-    def scrape(self, url, options = None) -> bytes:
-        resp = httpx.post(
+    def prepare_request(self, url, options = None) -> httpx.Request:
+        return httpx.Request(
+            "POST", 
             self.endpoint,
-            auth=(self.api_key, ""),
-            timeout=self.timeout,
             json={
                 "url": url,  
                 "browserHtml": True,
-            },
+            }
         )
         
-        if resp.status_code > 299:
-            raise Exception("Unexpected status code: " + str(resp.status_code))
-
-        return resp.json()['browserHtml'].encode("utf-8")
+    def get_request_auth(self):
+        return (self.api_key, "")
+        
+    def parse_response(self, url, resp):
+        content = resp.json()['browserHtml']
+        
+        return ScrapperResponse(
+            content=content,
+            final_url=url,
+            status_code=resp.status_code,
+        )

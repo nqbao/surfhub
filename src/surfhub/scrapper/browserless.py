@@ -1,4 +1,4 @@
-from .model import BaseScrapper
+from .model import BaseScrapper, ScrapperResponse
 import httpx
 
 class BrowserlessScrapper(BaseScrapper):
@@ -9,16 +9,23 @@ class BrowserlessScrapper(BaseScrapper):
     """
     default_api_url = "https://chrome.browserless.io"
     
-    def scrape(self, url, options = None) -> bytes:
+    def prepare_request(self, url, options = None):
         # TODO: we can also use the /content api
         api_url = self.endpoint + "/scrape?token=" + self.api_key
-        resp = httpx.post(api_url, json={
-            "url": url,
-            "elements": [{"selector": "body"}],
-            "waitFor": self.timeout
-        }, timeout=self.timeout)
+        return httpx.Request(
+            "POST", 
+            api_url,
+            json={
+                "url": url,
+                "elements": [{"selector": "html"}],
+                "waitFor": self.timeout
+            }
+        )
         
-        if resp.status_code > 299:
-            raise Exception("Unexpected status code: " + str(resp.status_code))
-        
-        return resp.json()['data'][0]['results'][0]['html'].encode("utf-8")
+    def parse_response(self, url, resp):
+        html = resp.json()['data'][0]['results'][0]['html']
+        return ScrapperResponse(
+            content=html.encode("utf-8"),
+            final_url=url,
+            status_code=resp.status_code
+        )
