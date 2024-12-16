@@ -1,7 +1,5 @@
-from typing import List, Optional
-import httpx
-from .model import SerpRequestOptions, SerpResult, BaseSerp
-from surfhub.utils import hash_dict
+from typing import List
+from .model import SerpResult, BaseSerp
 
 class ValueSerp(BaseSerp):
     """
@@ -10,7 +8,7 @@ class ValueSerp(BaseSerp):
     
     default_api_url = "https://api.valueserp.com/search"
     
-    def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> List[SerpResult]:
+    def get_serp_params(self, query, page=None, num=None, options = None):
         params = {
             "q": query,
             "api_key": self.api_key
@@ -40,21 +38,12 @@ class ValueSerp(BaseSerp):
         if num is not None:
             params["num"] = num
             
-        cache_key = None
-        resp = None
-        if self.cache:
-            cache_key = hash_dict({**params, "endpoint": self.endpoint})
-            resp = self.cache.get(cache_key)
-        
-        if resp is None:
-            resp = httpx.get(self.endpoint, params=params, timeout=self.timeout).json()
-        
+        return params
+    
+    def parse_result(self, resp) -> List[SerpResult]:
         if not resp['request_info']['success']:
             raise Exception(resp['request_info']['message'])
         
-        if self.cache and cache_key:
-            self.cache.set(cache_key, resp)
-
         return [
             SerpResult(
                 title=i.get("title"),
