@@ -1,5 +1,4 @@
 import abc
-import os
 import httpx
 from pydantic import BaseModel
 
@@ -50,6 +49,7 @@ class BaseScraper(Scraper):
             timeout=self.timeout
         ) as client:
             for i in range(self.retries):
+                resp = None
                 try:
                     resp = client.send(
                         self.prepare_request(url, options),
@@ -58,10 +58,10 @@ class BaseScraper(Scraper):
                     
                     self.validate_response(resp)
                 except Exception as e:
-                    if i == self.retries - 1 or not self.is_retriable_error(resp):
-                        raise e
-
-                    continue
+                    if i < self.retries - 1 and self.is_retriable_error(e, resp):
+                        continue
+                    
+                    raise e
 
                 break
 
@@ -75,6 +75,7 @@ class BaseScraper(Scraper):
             timeout=self.timeout
         ) as client:
             for i in range(self.retries):
+                resp = None
                 try:
                     resp = await client.send(
                         self.prepare_request(url, options),
@@ -83,10 +84,10 @@ class BaseScraper(Scraper):
                     
                     self.validate_response(resp)
                 except Exception as e:
-                    if i == self.retries - 1 or not self.is_retriable_error(resp):
-                        raise e
+                    if i < self.retries - 1 and self.is_retriable_error(e, resp):
+                        continue
 
-                    continue
+                    raise e
 
         return self.parse_response(url, resp)
 
@@ -105,8 +106,12 @@ class BaseScraper(Scraper):
         if resp.status_code != 200:
             raise Exception("Unexpected status code: " + str(resp.status_code))
 
-    def is_retriable_error(self, resp: httpx.Response):
-        return resp.status_code >= 500
+    def is_retriable_error(self, ex: Exception, resp: httpx.Response):
+        # allow retries for connection errors
+        if isinstance(ex, httpx.TransportError):
+            return True
+
+        return resp and resp.status_code >= 500
 
     @property
     def api_key(self) -> str:
