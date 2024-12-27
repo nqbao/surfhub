@@ -9,9 +9,9 @@ This library provides two basic components for you to run google search and gett
 To start, you can visit [Serper](https://serper.dev) to get a free account.
 
 ```
-import surhub.serp as serp
+import surhub import get_serper
 
-s = serp.get_serp("serper", api_key="yourkey")
+s = serp.get_serper("serper", api_key="yourkey")
 print(s.serp("hello world").items)
 ```
 
@@ -20,13 +20,11 @@ Supported SERP provider:
   * Google Custom Search
   * [Serper](https://serper.dev/)
 
-TODO: [SerpAPI](https://serpapi.com/), DuckDuckGo
-
 
 Example to use scrapper
 
 ```
-import surfhub.scrapper as scapper
+import surfhub as scapper
 
 s = serp.get_scrapper("browserless", api_key="yourkey")
 s.scrape("https://webscraper.io/test-sites/e-commerce/allinone")
@@ -38,4 +36,8 @@ Supported Scrapper provider
   * Zyte
   * Crawlspace
 
-TODO: ScrappingBee
+# TODO
+
+- [ ] Support ScrappingBee
+- [ ] Support [SerpAPI](https://serpapi.com/)
+- [ ] Support Duckduckgo api

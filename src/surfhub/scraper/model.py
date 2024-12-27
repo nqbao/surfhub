@@ -40,6 +40,7 @@ class BaseScrapper(Scrapper):
     default_api_url = ""
     _api_key : str = None
     _api_url : str = None
+    _retries : int = 3
     
     def __init__(self, api_key: str = None):
         self._api_key = api_key
@@ -48,12 +49,21 @@ class BaseScrapper(Scrapper):
         with httpx.Client(
             timeout=self.timeout
         ) as client:
-            resp = client.send(
-                self.prepare_request(url, options),
-                auth=self.get_request_auth(),
-            )
-            
-        self.validate_response(resp)
+            for i in range(self.retries):
+                try:
+                    resp = client.send(
+                        self.prepare_request(url, options),
+                        auth=self.get_request_auth(),
+                    )
+                    
+                    self.validate_response(resp)
+                except Exception as e:
+                    if i == self.retries - 1 or not self.is_retriable_error(resp):
+                        raise e
+
+                    continue
+
+                break
 
         return self.parse_response(url, resp)
 
@@ -64,12 +74,20 @@ class BaseScrapper(Scrapper):
         async with httpx.AsyncClient(
             timeout=self.timeout
         ) as client:
-            resp = await client.send(
-                self.prepare_request(url, options),
-                auth=self.get_request_auth(),
-            )
-            
-        self.validate_response(resp)
+            for i in range(self.retries):
+                try:
+                    resp = await client.send(
+                        self.prepare_request(url, options),
+                        auth=self.get_request_auth(),
+                    )
+                    
+                    self.validate_response(resp)
+                except Exception as e:
+                    if i == self.retries - 1 or not self.is_retriable_error(resp):
+                        raise e
+
+                    continue
+
         return self.parse_response(url, resp)
 
     @abc.abstractmethod
@@ -87,6 +105,9 @@ class BaseScrapper(Scrapper):
         if resp.status_code != 200:
             raise Exception("Unexpected status code: " + str(resp.status_code))
 
+    def is_retriable_error(self, resp: httpx.Response):
+        return resp.status_code >= 500
+
     @property
     def api_key(self) -> str:
         return self._api_key
@@ -102,3 +123,11 @@ class BaseScrapper(Scrapper):
     @api_url.setter
     def api_url(self, value: str):
         self._api_url = value
+
+    @property
+    def retries(self) -> int:
+        return self._retries
+    
+    @retries.setter
+    def retries(self, value: int):
+        self._retries = value

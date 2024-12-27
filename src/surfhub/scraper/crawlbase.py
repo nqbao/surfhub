@@ -21,11 +21,14 @@ class CrawlbaseScrapper(BaseScrapper):
             },
         )
         
-    def parse_response(self, url, resp: httpx.Response) -> ScrapperResponse:
-        # check pc_status
+    def validate_response(self, resp: httpx.Response):
+        super().validate_response(resp)
+        
         if resp.headers.get("pc_status") != "200":
             raise Exception("Unexpetected error: " + resp.text)
+
         
+    def parse_response(self, url, resp: httpx.Response) -> ScrapperResponse:
         return ScrapperResponse(
             content=resp.content,
             final_url=resp.headers.get("url") or url,

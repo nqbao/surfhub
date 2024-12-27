@@ -31,7 +31,7 @@ class SerpApi(abc.ABC):
         return self.serp(query, page, num, options)
 
 
-class BaseSerp(SerpApi):
+class BaseSerper(SerpApi):
     default_api_url : str = None
     cache : Optional[Cache] = None
     _api_key : str = None

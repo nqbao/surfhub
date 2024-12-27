@@ -1,11 +1,11 @@
-from .model import BaseSerp, SerpResult, SerpRequestOptions
+from .model import BaseSerper, SerpResult, SerpRequestOptions
 from .valueserp import ValueSerp
 from .google import GoogleCustomSearch
 from .serper import SerperDev
 from surfhub.cache.base import Cache
 
 
-def get_serp(provider, cache: Cache=None, **kwargs) -> BaseSerp:
+def get_serper(provider, cache: Cache=None, **kwargs) -> BaseSerper:
     if not provider:
         raise ValueError("Please provide a SERP provider")
      

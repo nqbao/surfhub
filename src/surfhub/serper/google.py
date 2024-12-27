@@ -1,6 +1,6 @@
-from .model import BaseSerp, SerpResult
+from .model import BaseSerper, SerpResult
 
-class GoogleCustomSearch(BaseSerp):
+class GoogleCustomSearch(BaseSerper):
     """
     Search Google via Google Custom Search API
     """

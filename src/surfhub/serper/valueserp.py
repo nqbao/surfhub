@@ -1,7 +1,7 @@
 from typing import List
-from .model import SerpResult, BaseSerp
+from .model import SerpResult, BaseSerper
 
-class ValueSerp(BaseSerp):
+class ValueSerp(BaseSerper):
     """
     Search Google via ValueSerp API
     """
