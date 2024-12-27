@@ -1,9 +1,9 @@
-from .model import BaseScrapper, ScrapperResponse
+from .model import BaseScraper, ScraperResponse
 import httpx
 
-class BrowserlessScrapper(BaseScrapper):
+class BrowserlessScraper(BaseScraper):
     """
-    Scrapper that uses Browserless API
+    Scraper that uses Browserless API
     
     https://docs.browserless.io/http-apis/scrape
     """
@@ -24,7 +24,7 @@ class BrowserlessScrapper(BaseScrapper):
         
     def parse_response(self, url, resp):
         html = resp.json()['data'][0]['results'][0]['html']
-        return ScrapperResponse(
+        return ScraperResponse(
             content=html.encode("utf-8"),
             final_url=url,
             status_code=resp.status_code

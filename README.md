@@ -21,20 +21,20 @@ Supported SERP provider:
   * [Serper](https://serper.dev/)
 
 
-Example to use scrapper
+Example to use scraper
 
 ```
-import surfhub as scapper
+from surfhub import get_scraper
 
-s = serp.get_scrapper("browserless", api_key="yourkey")
+s = serp.get_scraper("browserless", api_key="yourkey")
 s.scrape("https://webscraper.io/test-sites/e-commerce/allinone")
 ```
 
-Supported Scrapper provider
+Supported Scraper provider
   * Local (run on your laptop) with proxy support
   * Browserless
   * Zyte
-  * Crawlspace
+  * Crawlbase
 
 # TODO
 

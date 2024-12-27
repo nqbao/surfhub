@@ -1,9 +1,9 @@
-from .model import BaseScrapper, ScrapperResponse
+from .model import BaseScraper, ScraperResponse
 import httpx
 
-class ZyteScrapper(BaseScrapper):
+class ZyteScraper(BaseScraper):
     """
-    Scrapper that uses Zyte Extract API
+    Scraper that uses Zyte Extract API
     """
     default_api_url = "https://api.zyte.com/v1/extract"
     
@@ -23,7 +23,7 @@ class ZyteScrapper(BaseScrapper):
     def parse_response(self, url, resp):
         content = resp.json()['browserHtml']
         
-        return ScrapperResponse(
+        return ScraperResponse(
             content=content,
             final_url=url,
             status_code=resp.status_code,

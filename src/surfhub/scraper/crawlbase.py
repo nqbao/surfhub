@@ -1,11 +1,11 @@
-from .model import BaseScrapper, ScrapperResponse
+from .model import BaseScraper, ScraperResponse
 import httpx
 
-class CrawlbaseScrapper(BaseScrapper):
+class CrawlbaseScraper(BaseScraper):
     """
-    Scrapper that uses Crawlbase API
+    Scraper that uses Crawlbase API
     
-    Crawlspace uses different token for JS Scrapper and HTML Scrapper. You will need to provide the correct token.
+    Crawlspace uses different token for JS Scraper and HTML Scraper. You will need to provide the correct token.
     
     https://crawlbase.com/docs/crawling-api/response
     """
@@ -28,8 +28,8 @@ class CrawlbaseScrapper(BaseScrapper):
             raise Exception("Unexpetected error: " + resp.text)
 
         
-    def parse_response(self, url, resp: httpx.Response) -> ScrapperResponse:
-        return ScrapperResponse(
+    def parse_response(self, url, resp: httpx.Response) -> ScraperResponse:
+        return ScraperResponse(
             content=resp.content,
             final_url=resp.headers.get("url") or url,
             status_code=str(resp.headers.get("original_status") or "200"),

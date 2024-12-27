@@ -1,15 +1,15 @@
-from .model import Scrapper, ScrapperOptions, ScrapperResponse
+from .model import Scraper, ScraperOptions, ScraperResponse
 import httpx
 
-class LocalScrapper(Scrapper):
+class LocalScraper(Scraper):
     _http_proxy : str = ""
     _https_proxy : str = ""
     _verify_ca : bool = True
     
     """
-    A scrapper that runs on local
+    A scraper that runs on local
     """
-    def scrape(self, url: str, options : ScrapperOptions = None) -> ScrapperResponse:
+    def scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
         proxies = None
         if self.http_proxy or self.https_proxy:
             proxies = {
@@ -24,13 +24,13 @@ class LocalScrapper(Scrapper):
             verify=self.verify_ca
         )
         
-        return ScrapperResponse(
+        return ScraperResponse(
             content=resp.content,
             status_code=resp.status_code,
             final_url=resp.url,
         )
 
-    async def async_scrape(self, url: str, options : ScrapperOptions = None) -> ScrapperResponse:
+    async def async_scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
         return self.scrape(url, options)
 
     @property
