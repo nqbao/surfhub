@@ -1,17 +1,17 @@
-from .model import Scrapper
-from .local import LocalScrapper
-from .browserless import BrowserlessScrapper
-from .zyte import ZyteScrapper
-from .crawlbase import CrawlbaseScrapper
+from .model import Scraper
+from .local import LocalScraper
+from .browserless import BrowserlessScraper
+from .zyte import ZyteScraper
+from .crawlbase import CrawlbaseScraper
 
-def get_scrapper(provider, api_key=None, **kwargs) -> Scrapper:
+def get_scraper(provider, api_key=None, **kwargs) -> Scraper:
     if provider == "local":
-        return LocalScrapper(**kwargs)
+        return LocalScraper(**kwargs)
     elif provider == "browserless":
-        return BrowserlessScrapper(api_key=api_key, **kwargs)
+        return BrowserlessScraper(api_key=api_key, **kwargs)
     elif provider == "zyte":
-        return ZyteScrapper(api_key=api_key, **kwargs)
+        return ZyteScraper(api_key=api_key, **kwargs)
     elif provider == "crawlbase":
-        return CrawlbaseScrapper(api_key=api_key, **kwargs)
+        return CrawlbaseScraper(api_key=api_key, **kwargs)
 
-    raise ValueError("Unknown scrapper provider")
+    raise ValueError("Unknown scraper provider")

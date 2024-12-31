@@ -1,12 +1,11 @@
 import abc
-import os
 import httpx
 from pydantic import BaseModel
 
-class ScrapperOptions(BaseModel):
+class ScraperOptions(BaseModel):
     pass
 
-class ScrapperResponse(BaseModel):
+class ScraperResponse(BaseModel):
     content: bytes
     final_url: str
     status_code: int
@@ -14,15 +13,15 @@ class ScrapperResponse(BaseModel):
     def text(self, encoding: str = "utf-8") -> str:
         return self.content.decode(encoding)
 
-class Scrapper(abc.ABC):
+class Scraper(abc.ABC):
     _timeout : int = 30
     
     @abc.abstractmethod
-    def scrape(self, url: str, options: ScrapperOptions = None) -> ScrapperResponse:
+    def scrape(self, url: str, options: ScraperOptions = None) -> ScraperResponse:
         pass
     
     @abc.abstractmethod
-    async def async_scrape(self, url: str, options: ScrapperOptions = None) -> ScrapperResponse:
+    async def async_scrape(self, url: str, options: ScraperOptions = None) -> ScraperResponse:
         pass
     
     @property
@@ -36,7 +35,7 @@ class Scrapper(abc.ABC):
     def timeout(self, value: int):
         self._timeout = value
 
-class BaseScrapper(Scrapper):
+class BaseScraper(Scraper):
     default_api_url = ""
     _api_key : str = None
     _api_url : str = None
@@ -45,11 +44,12 @@ class BaseScrapper(Scrapper):
     def __init__(self, api_key: str = None):
         self._api_key = api_key
 
-    def scrape(self, url, options : ScrapperOptions = None) -> ScrapperResponse:
+    def scrape(self, url, options : ScraperOptions = None) -> ScraperResponse:
         with httpx.Client(
             timeout=self.timeout
         ) as client:
             for i in range(self.retries):
+                resp = None
                 try:
                     resp = client.send(
                         self.prepare_request(url, options),
@@ -58,16 +58,16 @@ class BaseScrapper(Scrapper):
                     
                     self.validate_response(resp)
                 except Exception as e:
-                    if i == self.retries - 1 or not self.is_retriable_error(resp):
-                        raise e
-
-                    continue
+                    if i < self.retries - 1 and self.is_retriable_error(e, resp):
+                        continue
+                    
+                    raise e
 
                 break
 
         return self.parse_response(url, resp)
 
-    async def async_scrape(self, url: str, options : ScrapperOptions = None) -> ScrapperResponse:
+    async def async_scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
         """
         Scrapes the content of a given URL asynchronously and returns it content
         """
@@ -75,6 +75,7 @@ class BaseScrapper(Scrapper):
             timeout=self.timeout
         ) as client:
             for i in range(self.retries):
+                resp = None
                 try:
                     resp = await client.send(
                         self.prepare_request(url, options),
@@ -83,19 +84,19 @@ class BaseScrapper(Scrapper):
                     
                     self.validate_response(resp)
                 except Exception as e:
-                    if i == self.retries - 1 or not self.is_retriable_error(resp):
-                        raise e
+                    if i < self.retries - 1 and self.is_retriable_error(e, resp):
+                        continue
 
-                    continue
+                    raise e
 
         return self.parse_response(url, resp)
 
     @abc.abstractmethod
-    def prepare_request(self, url: str, options : ScrapperOptions = None) -> httpx.Request:
+    def prepare_request(self, url: str, options : ScraperOptions = None) -> httpx.Request:
         pass
     
     @abc.abstractmethod
-    def parse_response(self, url: str, resp: httpx.Response) -> ScrapperResponse:
+    def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:
         pass
 
     def get_request_auth(self):
@@ -105,8 +106,12 @@ class BaseScrapper(Scrapper):
         if resp.status_code != 200:
             raise Exception("Unexpected status code: " + str(resp.status_code))
 
-    def is_retriable_error(self, resp: httpx.Response):
-        return resp.status_code >= 500
+    def is_retriable_error(self, ex: Exception, resp: httpx.Response):
+        # allow retries for connection errors
+        if isinstance(ex, httpx.TransportError):
+            return True
+
+        return resp and resp.status_code >= 500
 
     @property
     def api_key(self) -> str:
