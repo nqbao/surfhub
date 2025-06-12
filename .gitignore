@@ -6,3 +6,4 @@ env.sh
 sandbox
 cache.db*
 .pytest_cache
+build

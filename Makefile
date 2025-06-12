@@ -25,7 +25,7 @@ publish: build
 # Install the package locally
 install:
 	@echo "Installing the package locally..."
-	pip install .
+	pip install -e .
 
 # Run tests
 test:
