@@ -2,6 +2,7 @@ from .model import BaseSerper, SerpResult, SerpRequestOptions
 from .valueserp import ValueSerp
 from .google import GoogleCustomSearch
 from .serper import SerperDev
+from .duckduckgo import DuckDuckGo
 from surfhub.cache.base import Cache
 
 
@@ -17,5 +18,8 @@ def get_serper(provider, cache: Cache=None, **kwargs) -> BaseSerper:
     
     if provider == "serper":
         return SerperDev(cache=cache, **kwargs)
+    
+    if provider == "duckduckgo":
+        return DuckDuckGo(cache=cache, **kwargs)
     
     raise ValueError(f"Unknown provider: {provider}")

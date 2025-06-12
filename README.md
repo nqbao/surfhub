@@ -19,6 +19,7 @@ Supported SERP provider:
   * [ValueSerp](https://valueserp.com/)
   * Google Custom Search
   * [Serper](https://serper.dev/)
+  * Duckduckgo
 
 
 Example to use scraper
@@ -40,4 +41,4 @@ Supported Scraper provider
 
 - [ ] Support ScrappingBee
 - [ ] Support [SerpAPI](https://serpapi.com/)
-- [ ] Support Duckduckgo api
+
