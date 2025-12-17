@@ -1,10 +1,19 @@
 import abc
 import httpx
 from pydantic import BaseModel, field_validator
-from typing import Optional, List, Literal
+from typing import Optional, List
+from enum import Enum
 from surfhub.cache import Cache
 from surfhub.utils import hash_dict
 import re
+
+
+class TimeRange(str, Enum):
+    """Time range filter for search results"""
+    DAY = "d"
+    WEEK = "w"
+    MONTH = "m"
+    YEAR = "y"
 
 class SerpRequestOptions(BaseModel):
     """
@@ -15,7 +24,7 @@ class SerpRequestOptions(BaseModel):
         country (Optional[str]): Country code for geographically targeted results (e.g., 'us', 'uk', 'ca').
         location (Optional[str]): Specific location name for localized search results.
         google_domain (Optional[str]): Google domain to use for the search (e.g., 'google.com', 'google.co.uk').
-        time_range (Optional[Literal["d", "w", "m", "y"]]): Time filter - 'd' (day), 'w' (week), 'm' (month), 'y' (year).
+        time_range (Optional[TimeRange]): Time filter - DAY, WEEK, MONTH, or YEAR.
         date_start (Optional[str]): Start date for custom date range in YYYY-MM-DD format.
         date_end (Optional[str]): End date for custom date range in YYYY-MM-DD format.
         extra_options (Optional[dict]): Additional custom options to pass to the SERP API.
@@ -24,7 +33,7 @@ class SerpRequestOptions(BaseModel):
     country: Optional[str] = None
     location: Optional[str] = None
     google_domain: Optional[str] = None
-    time_range: Optional[Literal["d", "w", "m", "y"]] = None
+    time_range: Optional[TimeRange] = None
     date_start: Optional[str] = None
     date_end: Optional[str] = None
     extra_options: Optional[dict] = None

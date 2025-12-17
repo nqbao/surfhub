@@ -14,8 +14,23 @@ class Tavily(BaseSerper):
         }
         if num is not None:
             params["max_results"] = num
-        if options and options.extra_options:
-            params.update(options.extra_options)
+        
+        if options:
+            # Handle time filtering - custom date range takes priority
+            if options.date_start or options.date_end:
+                # Tavily uses start_date and end_date in YYYY-MM-DD format (same as our format!)
+                if options.date_start:
+                    params["start_date"] = options.date_start
+                if options.date_end:
+                    params["end_date"] = options.date_end
+            elif options.time_range:
+                # Map TimeRange enum to Tavily's time_range values
+                # Tavily accepts: day, week, month, year, d, w, m, y
+                params["time_range"] = options.time_range.value
+            
+            if options.extra_options:
+                params.update(options.extra_options)
+        
         return params
 
     def serp(self, query: str, page=None, num=None, options=None):

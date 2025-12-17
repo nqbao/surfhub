@@ -1,9 +1,10 @@
-from .model import BaseSerper, SerpResult, SerpRequestOptions
+from .model import BaseSerper, SerpResult, SerpRequestOptions, TimeRange
 from .valueserp import ValueSerp
 from .google import GoogleCustomSearch
 from .serper import SerperDev
 from .duckduckgo import DuckDuckGo
 from .tavily import Tavily
+from .serpapi import SerpApi
 from surfhub.cache.base import Cache
 
 
@@ -21,6 +22,9 @@ def get_serper(provider, cache: Cache=None, api_key=None, **kwargs) -> BaseSerpe
     
     if provider == "serper":
         return SerperDev(cache=cache, **kwargs)
+    
+    if provider == "serpapi":
+        return SerpApi(cache=cache, **kwargs)
     
     if provider == "duckduckgo":
         return DuckDuckGo(cache=cache, **kwargs)

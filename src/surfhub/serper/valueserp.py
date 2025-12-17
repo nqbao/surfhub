@@ -40,14 +40,14 @@ class ValueSerp(BaseSerper):
                     date_obj = datetime.strptime(options.date_end, "%Y-%m-%d")
                     params["time_period_max"] = date_obj.strftime("%m/%d/%Y")
             elif options.time_range:
-                # Map short codes to ValueSerp time_period values
+                # Map TimeRange enum to ValueSerp time_period values
                 time_range_map = {
                     "d": "last_day",
                     "w": "last_week",
                     "m": "last_month",
                     "y": "last_year"
                 }
-                params["time_period"] = time_range_map.get(options.time_range, options.time_range)
+                params["time_period"] = time_range_map.get(options.time_range.value, options.time_range.value)
                 
             # anything to pass to the API
             if options.extra_options:

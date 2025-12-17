@@ -1,7 +1,7 @@
 import respx
 import httpx
 from surfhub.serper.valueserp import ValueSerp
-from surfhub.serper.model import SerpRequestOptions
+from surfhub.serper.model import SerpRequestOptions, TimeRange
 
 
 def test_valueserp():
@@ -35,19 +35,19 @@ def test_valueserp_time_range():
     serp = ValueSerp(api_key="123456")
     
     # Test each time range mapping
-    options = SerpRequestOptions(time_range="d")
+    options = SerpRequestOptions(time_range=TimeRange.DAY)
     params = serp.get_serp_params("test query", options=options)
     assert params["time_period"] == "last_day"
     
-    options = SerpRequestOptions(time_range="w")
+    options = SerpRequestOptions(time_range=TimeRange.WEEK)
     params = serp.get_serp_params("test query", options=options)
     assert params["time_period"] == "last_week"
     
-    options = SerpRequestOptions(time_range="m")
+    options = SerpRequestOptions(time_range=TimeRange.MONTH)
     params = serp.get_serp_params("test query", options=options)
     assert params["time_period"] == "last_month"
     
-    options = SerpRequestOptions(time_range="y")
+    options = SerpRequestOptions(time_range=TimeRange.YEAR)
     params = serp.get_serp_params("test query", options=options)
     assert params["time_period"] == "last_year"
 
@@ -96,7 +96,7 @@ def test_valueserp_date_range_priority():
     serp = ValueSerp(api_key="123456")
     
     options = SerpRequestOptions(
-        time_range="w",
+        time_range=TimeRange.WEEK,
         date_start="2024-01-01",
         date_end="2024-12-31"
     )

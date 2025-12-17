@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from surfhub.serper.model import SerpRequestOptions
+from surfhub.serper.model import SerpRequestOptions, TimeRange
 
 
 class TestSerpRequestOptions:
@@ -8,9 +8,9 @@ class TestSerpRequestOptions:
     
     def test_valid_time_range_values(self):
         """Test that all valid time_range enum values are accepted"""
-        for value in ["d", "w", "m", "y"]:
-            options = SerpRequestOptions(time_range=value)
-            assert options.time_range == value
+        for time_range in [TimeRange.DAY, TimeRange.WEEK, TimeRange.MONTH, TimeRange.YEAR]:
+            options = SerpRequestOptions(time_range=time_range)
+            assert options.time_range == time_range
     
     def test_invalid_time_range_value(self):
         """Test that invalid time_range values are rejected"""
@@ -83,11 +83,11 @@ class TestSerpRequestOptions:
     def test_combining_time_range_and_dates(self):
         """Test that time_range and date_start/date_end can coexist"""
         options = SerpRequestOptions(
-            time_range="w",
+            time_range=TimeRange.WEEK,
             date_start="2024-01-01",
             date_end="2024-12-31"
         )
-        assert options.time_range == "w"
+        assert options.time_range == TimeRange.WEEK
         assert options.date_start == "2024-01-01"
         assert options.date_end == "2024-12-31"
     
@@ -98,7 +98,7 @@ class TestSerpRequestOptions:
             country="us",
             location="New York",
             google_domain="google.com",
-            time_range="d",
+            time_range=TimeRange.DAY,
             date_start="2024-01-01",
             date_end="2024-12-31",
             extra_options={"custom": "value"}
@@ -107,7 +107,7 @@ class TestSerpRequestOptions:
         assert options.country == "us"
         assert options.location == "New York"
         assert options.google_domain == "google.com"
-        assert options.time_range == "d"
+        assert options.time_range == TimeRange.DAY
         assert options.date_start == "2024-01-01"
         assert options.date_end == "2024-12-31"
         assert options.extra_options == {"custom": "value"}
