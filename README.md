@@ -9,9 +9,9 @@ This library provides two basic components for you to run google search and gett
 To start, you can visit [Serper](https://serper.dev) to get a free account.
 
 ```
-import surhub import get_serper
+import surfhub import get_serper
 
-s = serp.get_serper("serper", api_key="yourkey")
+s = get_serper("serper", api_key="yourkey")
 print(s.serp("hello world").items)
 ```
 
@@ -41,4 +41,3 @@ Supported Scraper provider
 
 - [ ] Support ScrappingBee
 - [ ] Support [SerpAPI](https://serpapi.com/)
-
