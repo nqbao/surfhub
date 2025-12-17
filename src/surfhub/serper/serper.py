@@ -41,6 +41,9 @@ class SerperDev(BaseSerper):
         return params
     
     def parse_result(self, resp) -> List[SerpResult]:
+        if resp.get('statusCode', 200) != 200:
+            raise Exception(f"Serper API error: {resp.get('message', 'Unknown error')}")
+
         return [
             SerpResult(
                 title=i.get("title"),

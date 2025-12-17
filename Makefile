@@ -20,6 +20,7 @@ publish-test: build
 # Upload to PyPI
 publish: build
 	@echo "Uploading to PyPI..."
+	pip install --upgrade twine
 	python -m twine upload dist/*
 
 # Install the package locally

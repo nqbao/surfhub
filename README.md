@@ -3,13 +3,13 @@ A python library for surfing and crawling website.
 
 This library provides two basic components for you to run google search and getting result
 
-* Seprer is a API to provide structured data from Google search. There are many serper providers such as ValueSerp, Serper, etc
-* Scraper is an API to extract HTML from website. You can run it on your own laptop, but it is better to use providers such as Zyte, or Browserless
+* **SERP** is an API that provides structured data from Google search results. There are many SERP providers such as ValueSerp, Serper, etc.
+* **Scraper** is an API that extracts HTML from websites. You can run it on your own laptop, but it's better to use providers such as Zyte or Browserless.
 
 To start, you can visit [Serper](https://serper.dev) to get a free account.
 
 ```
-import surfhub import get_serper
+from surfhub import get_serper
 
 s = get_serper("serper", api_key="yourkey")
 print(s.serp("hello world").items)

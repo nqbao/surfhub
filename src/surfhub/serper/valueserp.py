@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 from .model import SerpResult, BaseSerper
 
 class ValueSerp(BaseSerper):
@@ -26,11 +27,37 @@ class ValueSerp(BaseSerper):
                 
             if options.google_domain:
                 params["google_domain"] = options.google_domain
+            
+            # Handle time filtering - custom date range takes priority
+            if options.date_start or options.date_end:
+                params["time_period"] = "custom"
+                if options.date_start:
+                    # Convert YYYY-MM-DD to MM/DD/YYYY
+                    date_obj = datetime.strptime(options.date_start, "%Y-%m-%d")
+                    params["time_period_min"] = date_obj.strftime("%m/%d/%Y")
+                if options.date_end:
+                    # Convert YYYY-MM-DD to MM/DD/YYYY
+                    date_obj = datetime.strptime(options.date_end, "%Y-%m-%d")
+                    params["time_period_max"] = date_obj.strftime("%m/%d/%Y")
+            elif options.time_range:
+                # Map short codes to ValueSerp time_period values
+                time_range_map = {
+                    "d": "last_day",
+                    "w": "last_week",
+                    "m": "last_month",
+                    "y": "last_year"
+                }
+                params["time_period"] = time_range_map.get(options.time_range, options.time_range)
                 
             # anything to pass to the API
             if options.extra_options:
                 params.update(options.extra_options)
             # params['include_answer_box'] = 'true'
+            # params['include_ai_overview'] = 'true'
+
+        # include some reasonable defaults
+        if "hl" not in params:
+            params["hl"] = "en"
 
         if page is not None:
             params["page"] = page
