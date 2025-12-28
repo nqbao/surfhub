@@ -92,7 +92,8 @@ class BaseSerper(SerpApi):
             cached = items is not None
         
         if items is None:
-            resp = httpx.get(self.endpoint, params=params, timeout=self.timeout).json()
+            resp = httpx.get(self.endpoint, params=params, timeout=self.timeout)
+            resp = resp.json()
             items = self.parse_result(resp)
         
         if self.cache and cache_key:

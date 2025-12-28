@@ -5,6 +5,7 @@ from .serper import SerperDev
 from .duckduckgo import DuckDuckGo
 from .tavily import Tavily
 from .serpapi import SerpApi
+from .you import YouSearch
 from surfhub.cache.base import Cache
 
 
@@ -31,5 +32,8 @@ def get_serper(provider, cache: Cache=None, api_key=None, **kwargs) -> BaseSerpe
     
     if provider == "tavily":
         return Tavily(cache=cache, **kwargs)
+    
+    if provider == "you":
+        return YouSearch(cache=cache, **kwargs)
     
     raise ValueError(f"Unknown provider: {provider}")

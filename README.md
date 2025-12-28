@@ -22,6 +22,7 @@ Supported SERP provider:
   * [SerpApi](https://serpapi.com/)
   * Duckduckgo
   * [Tavily](https://tavily.com/)
+  * [You.com](https://you.com/)
 
 
 Example to use scraper
