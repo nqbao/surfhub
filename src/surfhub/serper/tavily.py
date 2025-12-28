@@ -2,6 +2,9 @@ from typing import List
 from surfhub.serper.model import SerpResult, BaseSerper, SerpResponse
 import httpx
 
+class TavilySerpResponse(SerpResponse):
+    answer: str = None
+
 class Tavily(BaseSerper):
     """
     Search via Tavily API
@@ -40,8 +43,14 @@ class Tavily(BaseSerper):
             "Authorization": f"Bearer {self.api_key}",
         }
         resp = httpx.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
-        items = self.parse_result(resp.json())
-        return SerpResponse(items=items, cached=False)
+        resp.raise_for_status()
+        resp = resp.json()
+        items = self.parse_result(resp)
+        return TavilySerpResponse(
+            items=items,
+            cached=False,
+            answer=resp.get("answer", None),
+        )
 
     async def async_serp(self, query: str, page=None, num=None, options=None):
         params = self.get_serp_params(query, page, num, options)
@@ -51,8 +60,14 @@ class Tavily(BaseSerper):
         }
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.post(self.endpoint, json=params, headers=headers)
-            items = self.parse_result(resp.json())
-        return SerpResponse(items=items, cached=False)
+            resp.raise_for_status()
+            resp = resp.json()
+            items = self.parse_result(resp)
+        return TavilySerpResponse(
+            items=items,
+            cached=False,
+            answer=resp.get("answer", None),
+        )
 
     def parse_result(self, resp) -> List[SerpResult]:
         results = resp.get("results", [])

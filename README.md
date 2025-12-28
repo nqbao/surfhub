@@ -42,4 +42,5 @@ Supported Scraper provider
 
 # TODO
 
+- [ ] Support brave
 - [ ] Support ScrappingBee

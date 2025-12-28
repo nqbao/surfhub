@@ -56,6 +56,7 @@ class SerpResult(BaseModel):
 class SerpResponse(BaseModel):
     items: List[SerpResult]
     cached : Optional[bool]
+    metadata: Optional[dict] = None
 
 class SerpApi(abc.ABC):
     @abc.abstractmethod
