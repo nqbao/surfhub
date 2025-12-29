@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Optional
 from surfhub.serper.model import SerpResult, BaseSerper, SerpResponse
 import httpx
 
 class TavilySerpResponse(SerpResponse):
-    answer: str = None
+    answer: Optional[str] = None
 
 class Tavily(BaseSerper):
     """
