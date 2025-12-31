@@ -23,6 +23,7 @@ Supported SERP provider:
   * Duckduckgo
   * [Tavily](https://tavily.com/)
   * [You.com](https://you.com/)
+  * [Brave](https://brave.com)
 
 
 Example to use scraper
@@ -42,5 +43,6 @@ Supported Scraper provider
 
 # TODO
 
-- [ ] Support brave
 - [ ] Support ScrappingBee
+- [ ] Add safe search option
+- [ ] Enable as MCP later
