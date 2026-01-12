@@ -11,7 +11,7 @@ class DuckDuckGo(SerpApi):
     api_url = "https://html.duckduckgo.com/html/"
     timeout = 30
 
-    def __init__(self, cache=None):
+    def __init__(self, cache=None, api_key=None):
         self.cache = cache
 
     def get_params(self, query, page=None, num=None, options=None):
