@@ -46,3 +46,5 @@ Supported Scraper provider
 - [ ] Support ScrappingBee
 - [ ] Add safe search option
 - [ ] Enable as MCP later
+- [ ] Add markdown converstion support
+- [ ] Make beautiful soup optional for duckduckgo

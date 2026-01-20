@@ -21,7 +21,7 @@ class DuckDuckGo(SerpApi):
         }
 
         # does not really work
-        if page is None and num is None:
+        if page is not None and num is not None:
             params["s"] = (page - 1) * num
 
         return params
@@ -29,7 +29,6 @@ class DuckDuckGo(SerpApi):
     def parse(self, resp: str) -> List[SerpResult]:
         soup = BeautifulSoup(resp, "html.parser")
         results = []
-        print(resp)
         for result in soup.select(".result__body"):
             title_tag = result.select_one(".result__title .result__a")
             href = title_tag["href"] if title_tag else None
@@ -58,11 +57,14 @@ class DuckDuckGo(SerpApi):
             cached = items is not None
 
         if items is None:
+            headers = {
+                'User-agent': 'Surfhub-Agent/0.0.1'
+            }
             if params.get("s"):
                 # do a post with params
-                resp = httpx.post(self.api_url, data=params, timeout=self.timeout, follow_redirects=True).text
+                resp = httpx.post(self.api_url, data=params, timeout=self.timeout, follow_redirects=True, headers=headers).text
             else:
-                resp = httpx.get(self.api_url, params=params, timeout=self.timeout, follow_redirects=True).text
+                resp = httpx.get(self.api_url, params=params, timeout=self.timeout, follow_redirects=True, headers=headers).text
             items = self.parse(resp)
 
         if self.cache and cache_key:
