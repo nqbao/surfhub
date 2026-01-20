@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from typing import List, Optional
 from surfhub.utils import hash_dict
 import httpx
+from urllib.parse import urlparse, parse_qs, unquote
 
 class DuckDuckGo(SerpApi):
     """
@@ -36,6 +37,13 @@ class DuckDuckGo(SerpApi):
             snippet_tag = result.select_one(".result__snippet")
             snippet = snippet_tag.get_text(strip=True) if snippet_tag else ""
             if title and href:
+                # Extract actual URL from DuckDuckGo redirect link
+                # DuckDuckGo returns links like: //duckduckgo.com/l/?uddg=<encoded_url>&rut=<hash>
+                if "uddg=" in href:
+                    parsed_url = urlparse(href)
+                    params = parse_qs(parsed_url.query)
+                    href = unquote(params["uddg"][0])
+                
                 results.append(
                     SerpResult(
                         title=title,
