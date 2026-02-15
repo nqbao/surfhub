@@ -7,7 +7,7 @@ from surfhub.serper.model import SerpRequestOptions, TimeRange
 def test_you_basic():
     """Test basic You.com search"""
     with respx.mock:
-        respx.get("https://api.ydc-index.io/v1/search").mock(
+        respx.get("https://ydc-index.io/v1/search").mock(
             return_value=httpx.Response(
                 200, 
                 json={
@@ -44,7 +44,7 @@ def test_you_basic():
 def test_you_web_and_news():
     """Test You.com search with both web and news results"""
     with respx.mock:
-        respx.get("https://api.ydc-index.io/v1/search").mock(
+        respx.get("https://ydc-index.io/v1/search").mock(
             return_value=httpx.Response(
                 200, 
                 json={
@@ -105,7 +105,7 @@ def test_you_params():
 def test_you_empty_results():
     """Test handling of empty results"""
     with respx.mock:
-        respx.get("https://api.ydc-index.io/v1/search").mock(
+        respx.get("https://ydc-index.io/v1/search").mock(
             return_value=httpx.Response(
                 200, 
                 json={
@@ -126,7 +126,7 @@ def test_you_empty_results():
 def test_you_snippets_fallback():
     """Test that description is used when snippets are not available"""
     with respx.mock:
-        respx.get("https://api.ydc-index.io/v1/search").mock(
+        respx.get("https://ydc-index.io/v1/search").mock(
             return_value=httpx.Response(
                 200, 
                 json={
