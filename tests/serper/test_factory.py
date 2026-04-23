@@ -3,6 +3,7 @@ from surfhub.serper.google import GoogleCustomSearch
 from surfhub.serper.valueserp import ValueSerp
 from surfhub.serper.you import YouSearch
 from surfhub.serper.brave import BraveSearch
+from surfhub.serper.exa import ExaSearch
 
 def test_factory():
     serp = get_serper("google")
@@ -16,3 +17,6 @@ def test_factory():
 
     serp = get_serper("brave")
     assert isinstance(serp, BraveSearch)
+
+    serp = get_serper("exa")
+    assert isinstance(serp, ExaSearch)
