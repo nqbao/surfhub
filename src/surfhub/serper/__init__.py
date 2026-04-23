@@ -7,6 +7,7 @@ from .tavily import Tavily
 from .serpapi import SerpApi
 from .you import YouSearch
 from .brave import BraveSearch
+from .exa import ExaSearch
 from surfhub.cache.base import Cache
 
 
@@ -39,5 +40,8 @@ def get_serper(provider, cache: Cache=None, api_key=None, **kwargs) -> BaseSerpe
     
     if provider == "brave":
         return BraveSearch(cache=cache, **kwargs)
-    
+
+    if provider == "exa":
+        return ExaSearch(cache=cache, **kwargs)
+
     raise ValueError(f"Unknown provider: {provider}")

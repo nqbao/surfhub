@@ -24,6 +24,7 @@ Supported SERP provider:
   * [Tavily](https://tavily.com/)
   * [You.com](https://you.com/)
   * [Brave](https://brave.com)
+  * [Exa](https://exa.ai)
 
 
 Example to use scraper
@@ -40,6 +41,7 @@ Supported Scraper provider
   * Browserless
   * Zyte
   * Crawlbase
+  * [Exa](https://exa.ai)
 
 # TODO
 
