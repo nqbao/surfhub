@@ -1,6 +1,5 @@
-from typing import List
-from surfhub.serper.model import SerpResult, BaseSerper, SerpResponse
-import httpx
+from typing import List, Dict
+from surfhub.serper.model import SerpResult, BaseSerper, SerpRequestOptions
 
 
 class YouSearch(BaseSerper):
@@ -10,7 +9,7 @@ class YouSearch(BaseSerper):
     """
     default_api_url = "https://ydc-index.io/v1/search"
 
-    def get_serp_params(self, query, page=None, num=None, options=None):
+    def get_serp_params(self, query: str, page=None, num=None, options: SerpRequestOptions = None) -> dict:
         params = {
             "query": query,
         }
@@ -28,12 +27,9 @@ class YouSearch(BaseSerper):
             if options.lang:
                 params["language"] = options.lang.upper()
             
-            # Handle time filtering
             if options.date_start and options.date_end:
-                # Format: YYYY-MM-DDtoYYYY-MM-DD
                 params["freshness"] = f"{options.date_start}to{options.date_end}"
             elif options.time_range:
-                # Map TimeRange to freshness values: day, week, month, year
                 freshness_map = {
                     "d": "day",
                     "w": "week",
@@ -47,37 +43,17 @@ class YouSearch(BaseSerper):
         
         return params
 
-    def serp(self, query: str, page=None, num=None, options=None):
-        params = self.get_serp_params(query, page, num, options)
-        headers = {
+    @property
+    def request_headers(self) -> Dict[str, str]:
+        return {
             "X-API-Key": self.api_key,
         }
-        resp = httpx.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
-        resp.raise_for_status()
-        items = self.parse_result(resp.json())
-        return SerpResponse(items=items, cached=False)
 
-    async def async_serp(self, query: str, page=None, num=None, options=None):
-        params = self.get_serp_params(query, page, num, options)
-        headers = {
-            "X-API-Key": self.api_key,
-        }
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.get(self.endpoint, params=params, headers=headers)
-            resp.raise_for_status()
-            items = self.parse_result(resp.json())
-        return SerpResponse(items=items, cached=False)
-
-    def parse_result(self, resp) -> List[SerpResult]:
-        """
-        Parse results from both web and news sections
-        """
+    def parse_result(self, resp: dict) -> List[SerpResult]:
         results = []
         
-        # Parse web results
         web_results = resp.get("results", {}).get("web", [])
         for item in web_results:
-            # Join snippets if available, otherwise use description
             snippet = " ".join(item.get("snippets", [])) if item.get("snippets") else item.get("description", "")
             
             results.append(
@@ -89,7 +65,6 @@ class YouSearch(BaseSerper):
                 )
             )
         
-        # Parse news results
         news_results = resp.get("results", {}).get("news", [])
         for item in news_results:
             results.append(

@@ -17,10 +17,10 @@ class ZyteScraper(BaseScraper):
             }
         )
         
-    def get_request_auth(self):
+    def get_request_auth(self) -> tuple:
         return (self.api_key, "")
         
-    def parse_response(self, url, resp):
+    def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:
         content = resp.json()['browserHtml']
         
         return ScraperResponse(

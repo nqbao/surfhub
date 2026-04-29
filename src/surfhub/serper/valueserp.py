@@ -1,6 +1,7 @@
 from typing import List
 from datetime import datetime
 from .model import SerpResult, BaseSerper
+from surfhub.errors import SerpApiError
 
 class ValueSerp(BaseSerper):
     """
@@ -9,7 +10,7 @@ class ValueSerp(BaseSerper):
     
     default_api_url = "https://api.valueserp.com/search"
     
-    def get_serp_params(self, query, page=None, num=None, options = None):
+    def get_serp_params(self, query: str, page=None, num=None, options=None) -> dict:
         params = {
             "q": query,
             "api_key": self.api_key
@@ -67,9 +68,9 @@ class ValueSerp(BaseSerper):
             
         return params
     
-    def parse_result(self, resp) -> List[SerpResult]:
+    def parse_result(self, resp: dict) -> List[SerpResult]:
         if not resp['request_info']['success']:
-            raise Exception(resp['request_info']['message'])
+            raise SerpApiError(resp['request_info']['message'])
         
         return [
             SerpResult(

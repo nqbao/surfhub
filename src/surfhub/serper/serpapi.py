@@ -1,6 +1,7 @@
 from typing import List
 from datetime import datetime
 from .model import SerpResult, BaseSerper
+from surfhub.errors import SerpApiError
 
 
 class SerpApi(BaseSerper):
@@ -10,7 +11,7 @@ class SerpApi(BaseSerper):
     
     default_api_url = "https://serpapi.com/search"
     
-    def get_serp_params(self, query, page=None, num=None, options=None):
+    def get_serp_params(self, query: str, page=None, num=None, options=None) -> dict:
         params = {
             "q": query,
             "api_key": self.api_key,
@@ -79,10 +80,10 @@ class SerpApi(BaseSerper):
             
         return params
     
-    def parse_result(self, resp) -> List[SerpResult]:
+    def parse_result(self, resp: dict) -> List[SerpResult]:
         # Check for errors
         if "error" in resp:
-            raise Exception(f"SerpApi error: {resp['error']}")
+            raise SerpApiError(f"SerpApi error: {resp['error']}")
         
         # Parse organic results
         organic_results = resp.get("organic_results", [])

@@ -1,6 +1,7 @@
 import abc
 import httpx
 from pydantic import BaseModel
+from surfhub.errors import ScrapingError
 
 class ScraperOptions(BaseModel):
     pass
@@ -104,7 +105,7 @@ class BaseScraper(Scraper):
 
     def validate_response(self, resp: httpx.Response):
         if resp.status_code != 200:
-            raise Exception("Unexpected status code: " + str(resp.status_code))
+            raise ScrapingError("Unexpected status code: " + str(resp.status_code), status_code=resp.status_code)
 
     def is_retriable_error(self, ex: Exception, resp: httpx.Response):
         # allow retries for connection errors

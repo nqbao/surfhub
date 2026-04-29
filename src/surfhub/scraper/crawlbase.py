@@ -1,4 +1,5 @@
 from .model import BaseScraper, ScraperResponse
+from surfhub.errors import ScrapingError
 import httpx
 
 class CrawlbaseScraper(BaseScraper):
@@ -25,12 +26,13 @@ class CrawlbaseScraper(BaseScraper):
         super().validate_response(resp)
         
         if resp.headers.get("pc_status") != "200":
-            raise Exception("Unexpetected error: " + resp.text)
+            raise ScrapingError("Unexpected error: " + resp.text)
 
         
     def parse_response(self, url, resp: httpx.Response) -> ScraperResponse:
+        raw_status = resp.headers.get("original_status") or "200"
         return ScraperResponse(
             content=resp.content,
             final_url=resp.headers.get("url") or url,
-            status_code=str(resp.headers.get("original_status") or "200"),
+            status_code=int(raw_status),
         )

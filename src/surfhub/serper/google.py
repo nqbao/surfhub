@@ -1,4 +1,6 @@
+from typing import List
 from .model import BaseSerper, SerpResult
+from surfhub.errors import SerpApiError
 
 class GoogleCustomSearch(BaseSerper):
     """
@@ -7,7 +9,7 @@ class GoogleCustomSearch(BaseSerper):
     
     default_api_url = "https://www.googleapis.com/customsearch/v1"
     
-    def get_serp_params(self, query, page=None, num=None, options = None):
+    def get_serp_params(self, query: str, page=None, num=None, options=None) -> dict:
         params = {
             "q": query,
         }
@@ -39,9 +41,9 @@ class GoogleCustomSearch(BaseSerper):
 
         return params
     
-    def parse_result(self, resp):
+    def parse_result(self, resp: dict) -> List[SerpResult]:
         if 'error' in resp:
-            raise RuntimeError(resp['error']['message'])
+            raise SerpApiError(resp['error']['message'])
 
         return [
             SerpResult(

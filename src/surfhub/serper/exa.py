@@ -1,6 +1,5 @@
-from typing import List, Optional
-from surfhub.serper.model import SerpResult, BaseSerper, SerpResponse
-import httpx
+from typing import List, Optional, Dict
+from surfhub.serper.model import SerpResult, BaseSerper, SerpRequestOptions
 
 
 class ExaSearch(BaseSerper):
@@ -11,7 +10,7 @@ class ExaSearch(BaseSerper):
     """
     default_api_url = "https://api.exa.ai/search"
 
-    def get_serp_params(self, query, page=None, num=None, options=None):
+    def get_serp_params(self, query: str, page=None, num=None, options: SerpRequestOptions = None) -> dict:
         params = {
             "query": query,
             "type": "auto",
@@ -30,28 +29,18 @@ class ExaSearch(BaseSerper):
 
         return params
 
-    def _headers(self):
+    @property
+    def request_method(self) -> str:
+        return "POST"
+
+    @property
+    def request_headers(self) -> Dict[str, str]:
         return {
             "x-api-key": self.api_key,
             "Content-Type": "application/json",
         }
 
-    def serp(self, query: str, page=None, num=None, options=None):
-        params = self.get_serp_params(query, page, num, options)
-        resp = httpx.post(self.endpoint, json=params, headers=self._headers(), timeout=self.timeout)
-        resp.raise_for_status()
-        items = self.parse_result(resp.json())
-        return SerpResponse(items=items, cached=False)
-
-    async def async_serp(self, query: str, page=None, num=None, options=None):
-        params = self.get_serp_params(query, page, num, options)
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.post(self.endpoint, json=params, headers=self._headers())
-            resp.raise_for_status()
-            items = self.parse_result(resp.json())
-        return SerpResponse(items=items, cached=False)
-
-    def parse_result(self, resp) -> List[SerpResult]:
+    def parse_result(self, resp: dict) -> List[SerpResult]:
         results = resp.get("results", [])
         return [
             SerpResult(
