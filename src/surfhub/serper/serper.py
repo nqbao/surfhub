@@ -1,5 +1,6 @@
 from typing import List
 from .model import SerpResult, BaseSerper
+from surfhub.errors import SerpApiError
 
 class SerperDev(BaseSerper):
     """
@@ -8,7 +9,7 @@ class SerperDev(BaseSerper):
     
     default_api_url = "https://google.serper.dev/search"
     
-    def get_serp_params(self, query, page=None, num=None, options = None):
+    def get_serp_params(self, query: str, page=None, num=None, options=None) -> dict:
         params = {
             "q": query,
             "apiKey": self.api_key
@@ -40,9 +41,9 @@ class SerperDev(BaseSerper):
             
         return params
     
-    def parse_result(self, resp) -> List[SerpResult]:
+    def parse_result(self, resp: dict) -> List[SerpResult]:
         if resp.get('statusCode', 200) != 200:
-            raise Exception(f"Serper API error: {resp.get('message', 'Unknown error')}")
+            raise SerpApiError(f"Serper API error: {resp.get('message', 'Unknown error')}", status_code=resp.get('statusCode'))
 
         return [
             SerpResult(

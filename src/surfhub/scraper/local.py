@@ -31,7 +31,26 @@ class LocalScraper(Scraper):
         )
 
     async def async_scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
-        return self.scrape(url, options)
+        proxies = None
+        if self.http_proxy or self.https_proxy:
+            proxies = {
+                "http://": self.http_proxy,
+                "https://": self.https_proxy
+            }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                url,
+                timeout=self.timeout,
+                proxies=proxies,
+                verify=self.verify_ca
+            )
+        
+        return ScraperResponse(
+            content=resp.content,
+            status_code=resp.status_code,
+            final_url=resp.url,
+        )
 
     @property
     def http_proxy(self) -> str:
@@ -50,9 +69,9 @@ class LocalScraper(Scraper):
         self._https_proxy = value
     
     @property
-    def verify_ca(self) -> int:
+    def verify_ca(self) -> bool:
         return self._verify_ca
     
     @verify_ca.setter
-    def verify_ca(self, value: int):
+    def verify_ca(self, value: bool):
         self._verify_ca = value

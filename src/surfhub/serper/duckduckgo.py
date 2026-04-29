@@ -15,7 +15,7 @@ class DuckDuckGo(SerpApi):
     def __init__(self, cache=None, api_key=None):
         self.cache = cache
 
-    def get_params(self, query, page=None, num=None, options=None):
+    def get_params(self, query: str, page=None, num=None, options=None) -> dict:
         params = {
             "q": query,
             "kl": "us-en",
