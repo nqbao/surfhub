@@ -25,7 +25,7 @@ def test_firecrawl_scraper_basic():
         )
         scraper = FirecrawlScraper(api_key="test_key")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == "This is the page content from Firecrawl."
+        assert resp.content.decode(resp.encoding) == "This is the page content from Firecrawl."
         assert resp.final_url == "https://example.com"
         assert resp.status_code == 200
 
@@ -70,7 +70,7 @@ def test_firecrawl_scraper_no_metadata():
         )
         scraper = FirecrawlScraper(api_key="test_key")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == ""
+        assert resp.content.decode(resp.encoding) == ""
         assert resp.final_url == "https://example.com"
 
 
@@ -91,4 +91,4 @@ async def test_firecrawl_scraper_async():
         )
         scraper = FirecrawlScraper(api_key="test_key")
         resp = await scraper.async_scrape("https://async.example.com")
-        assert resp.text() == "async firecrawl content"
+        assert resp.content.decode(resp.encoding) == "async firecrawl content"

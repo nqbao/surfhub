@@ -26,6 +26,8 @@ class BrowserlessScraper(BaseScraper):
         html = resp.json()['data'][0]['results'][0]['html']
         return ScraperResponse(
             content=html.encode("utf-8"),
+            content_type="text/html",
+            encoding="utf-8",
             final_url=url,
-            status_code=resp.status_code
+            status_code=resp.status_code,
         )

@@ -17,7 +17,7 @@ def test_jina_scraper_basic_html():
         )
         scraper = JinaScraper(api_key="test_key")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == "<html><body>This is the page content from Jina.</body></html>"
+        assert resp.content.decode(resp.encoding) == "<html><body>This is the page content from Jina.</body></html>"
         assert resp.final_url == "https://example.com"
         assert resp.status_code == 200
 
@@ -75,7 +75,7 @@ def test_jina_scraper_text_content():
         )
         scraper = JinaScraper(api_key="test_key", format="text")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == "Hello World"
+        assert resp.content.decode(resp.encoding) == "Hello World"
         assert resp.final_url == "https://example.com"
 
 
@@ -95,7 +95,7 @@ def test_jina_scraper_json_fallback():
         )
         scraper = JinaScraper(api_key="test_key", format="markdown")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == "# Hello World"
+        assert resp.content.decode(resp.encoding) == "# Hello World"
         assert resp.final_url == "https://example.com"
 
 
@@ -110,7 +110,7 @@ def test_jina_scraper_json_fallback_empty_content():
         )
         scraper = JinaScraper(api_key="test_key", format="text")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == '{"data":{"url":"https://example.com"}}'
+        assert resp.content.decode(resp.encoding) == '{"data":{"url":"https://example.com"}}'
 
 
 def test_jina_scraper_invalid_format():
@@ -190,7 +190,7 @@ def test_jina_scraper_empty_content():
         )
         scraper = JinaScraper(api_key="test_key", format="markdown")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == ""
+        assert resp.content.decode(resp.encoding) == ""
 
 
 @pytest.mark.anyio
@@ -205,4 +205,4 @@ async def test_jina_scraper_async():
         )
         scraper = JinaScraper(api_key="test_key")
         resp = await scraper.async_scrape("https://async.example.com")
-        assert resp.text() == "async jina content"
+        assert resp.content.decode(resp.encoding) == "async jina content"

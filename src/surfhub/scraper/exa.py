@@ -32,6 +32,8 @@ class ExaScraper(BaseScraper):
         final_url = results[0].get("url", url) if results else url
         return ScraperResponse(
             content=text.encode("utf-8"),
+            content_type="text/plain",
+            encoding="utf-8",
             final_url=final_url,
             status_code=resp.status_code,
         )

@@ -39,8 +39,8 @@ class JinaScraper(BaseScraper):
         return httpx.Request("GET", api_url, headers=headers)
 
     def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:
-        content_type = resp.headers.get("content-type", "")
-        if "application/json" in content_type:
+        resp_content_type = resp.headers.get("content-type", "")
+        if "application/json" in resp_content_type:
             data = resp.json()
             content = data.get("data", {}).get("content", "")
             if not content:
@@ -49,8 +49,14 @@ class JinaScraper(BaseScraper):
         else:
             content = resp.text
             final_url = url
+
+        ct_map = {"html": "text/html", "markdown": "text/markdown", "text": "text/plain"}
+        content_type = ct_map.get(self._format, "text/html")
+
         return ScraperResponse(
             content=content.encode("utf-8"),
+            content_type=content_type,
+            encoding="utf-8",
             final_url=final_url,
             status_code=resp.status_code,
         )

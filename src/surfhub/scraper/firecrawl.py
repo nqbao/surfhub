@@ -33,6 +33,8 @@ class FirecrawlScraper(BaseScraper):
         final_url = result.get("metadata", {}).get("sourceURL", url)
         return ScraperResponse(
             content=content.encode("utf-8"),
+            content_type="text/markdown",
+            encoding="utf-8",
             final_url=final_url,
             status_code=resp.status_code,
         )

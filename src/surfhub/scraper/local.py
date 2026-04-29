@@ -26,6 +26,8 @@ class LocalScraper(Scraper):
         
         return ScraperResponse(
             content=resp.content,
+            content_type=resp.headers.get("content-type", ""),
+            encoding=resp.encoding or "utf-8",
             status_code=resp.status_code,
             final_url=resp.url,
         )
@@ -48,6 +50,8 @@ class LocalScraper(Scraper):
         
         return ScraperResponse(
             content=resp.content,
+            content_type=resp.headers.get("content-type", ""),
+            encoding=resp.encoding or "utf-8",
             status_code=resp.status_code,
             final_url=resp.url,
         )
