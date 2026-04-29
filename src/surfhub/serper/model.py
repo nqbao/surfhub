@@ -58,6 +58,10 @@ class SerpResponse(BaseModel):
     cached : Optional[bool]
     metadata: Optional[dict] = None
 
+
+class DuckDuckGoSerpResponse(SerpResponse):
+    vqd: Optional[str] = None
+
 class SerpApi(abc.ABC):
     @abc.abstractmethod
     def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
