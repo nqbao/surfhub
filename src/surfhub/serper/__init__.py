@@ -8,6 +8,8 @@ from .serpapi import SerpApi
 from .you import YouSearch
 from .brave import BraveSearch
 from .exa import ExaSearch
+from .perplexity import PerplexitySearch
+from .jina import JinaSearch
 from surfhub.cache.base import Cache
 
 
@@ -43,5 +45,11 @@ def get_serper(provider, cache: Cache=None, api_key=None, **kwargs) -> BaseSerpe
 
     if provider == "exa":
         return ExaSearch(cache=cache, **kwargs)
+
+    if provider == "perplexity":
+        return PerplexitySearch(cache=cache, **kwargs)
+
+    if provider == "jina":
+        return JinaSearch(cache=cache, **kwargs)
 
     raise ValueError(f"Unknown provider: {provider}")

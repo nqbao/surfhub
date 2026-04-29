@@ -4,6 +4,8 @@ from surfhub.serper.valueserp import ValueSerp
 from surfhub.serper.you import YouSearch
 from surfhub.serper.brave import BraveSearch
 from surfhub.serper.exa import ExaSearch
+from surfhub.serper.perplexity import PerplexitySearch
+from surfhub.serper.jina import JinaSearch
 
 def test_factory():
     serp = get_serper("google")
@@ -20,3 +22,9 @@ def test_factory():
 
     serp = get_serper("exa")
     assert isinstance(serp, ExaSearch)
+
+    serp = get_serper("perplexity")
+    assert isinstance(serp, PerplexitySearch)
+
+    serp = get_serper("jina")
+    assert isinstance(serp, JinaSearch)
