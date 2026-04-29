@@ -6,6 +6,7 @@ from .crawlbase import CrawlbaseScraper
 from .exa import ExaScraper
 from .jina import JinaScraper
 from .firecrawl import FirecrawlScraper
+from .scrapingbee import ScrapingBeeScraper
 
 def get_scraper(provider, api_key=None, **kwargs) -> Scraper:
     if provider == "local":
@@ -22,5 +23,7 @@ def get_scraper(provider, api_key=None, **kwargs) -> Scraper:
         return JinaScraper(api_key=api_key, **kwargs)
     elif provider == "firecrawl":
         return FirecrawlScraper(api_key=api_key, **kwargs)
+    elif provider == "scrapingbee":
+        return ScrapingBeeScraper(api_key=api_key, **kwargs)
 
     raise ValueError("Unknown scraper provider")

@@ -4,6 +4,7 @@ from surfhub.scraper.browserless import BrowserlessScraper
 from surfhub.scraper.exa import ExaScraper
 from surfhub.scraper.jina import JinaScraper
 from surfhub.scraper.firecrawl import FirecrawlScraper
+from surfhub.scraper.scrapingbee import ScrapingBeeScraper
 
 def test_factory():
     scraper = get_scraper('local')
@@ -20,3 +21,6 @@ def test_factory():
 
     scraper = get_scraper('firecrawl', api_key='test_key')
     assert isinstance(scraper, FirecrawlScraper)
+
+    scraper = get_scraper('scrapingbee', api_key='test_key')
+    assert isinstance(scraper, ScrapingBeeScraper)
