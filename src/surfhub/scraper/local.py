@@ -9,51 +9,35 @@ class LocalScraper(Scraper):
     """
     A scraper that runs on local
     """
-    def scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
-        proxies = None
-        if self.http_proxy or self.https_proxy:
-            proxies = {
-                "http://": self.http_proxy,
-                "https://": self.https_proxy
-            }
+    def _get_proxy(self) -> str | None:
+        return self.http_proxy or self.https_proxy or None
 
-        resp = httpx.get(
-            url,
-            timeout=self.timeout,
-            proxies=proxies,
-            verify=self.verify_ca
-        )
+    def scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
+        proxy = self._get_proxy()
+
+        with httpx.Client(proxy=proxy, verify=self.verify_ca) as client:
+            resp = client.get(url, timeout=self.timeout)
         
         return ScraperResponse(
             content=resp.content,
             content_type=resp.headers.get("content-type", ""),
             encoding=resp.encoding or "utf-8",
             status_code=resp.status_code,
-            final_url=resp.url,
+            final_url=str(resp.url),
         )
 
     async def async_scrape(self, url: str, options : ScraperOptions = None) -> ScraperResponse:
-        proxies = None
-        if self.http_proxy or self.https_proxy:
-            proxies = {
-                "http://": self.http_proxy,
-                "https://": self.https_proxy
-            }
+        proxy = self._get_proxy()
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                url,
-                timeout=self.timeout,
-                proxies=proxies,
-                verify=self.verify_ca
-            )
+        async with httpx.AsyncClient(proxy=proxy, verify=self.verify_ca) as client:
+            resp = await client.get(url, timeout=self.timeout)
         
         return ScraperResponse(
             content=resp.content,
             content_type=resp.headers.get("content-type", ""),
             encoding=resp.encoding or "utf-8",
             status_code=resp.status_code,
-            final_url=resp.url,
+            final_url=str(resp.url),
         )
 
     @property
