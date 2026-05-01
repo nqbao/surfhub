@@ -33,6 +33,8 @@ class CrawlbaseScraper(BaseScraper):
         raw_status = resp.headers.get("original_status") or "200"
         return ScraperResponse(
             content=resp.content,
+            content_type=resp.headers.get("content-type", ""),
+            encoding=resp.encoding or "utf-8",
             final_url=resp.headers.get("url") or url,
             status_code=int(raw_status),
         )

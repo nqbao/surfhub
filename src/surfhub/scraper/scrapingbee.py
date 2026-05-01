@@ -35,6 +35,8 @@ class ScrapingBeeScraper(BaseScraper):
     def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:
         return ScraperResponse(
             content=resp.content,
+            content_type=resp.headers.get("content-type", ""),
+            encoding=resp.encoding or "utf-8",
             final_url=url,
             status_code=resp.status_code,
         )

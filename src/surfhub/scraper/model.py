@@ -8,11 +8,22 @@ class ScraperOptions(BaseModel):
 
 class ScraperResponse(BaseModel):
     content: bytes
+    content_type: str = ""
+    encoding: str = "utf-8"
     final_url: str
     status_code: int
-    
-    def text(self, encoding: str = "utf-8") -> str:
-        return self.content.decode(encoding)
+
+    def markdown(self) -> str:
+        if "html" in self.content_type:
+            import trafilatura
+            result = trafilatura.extract(
+                self.content,
+                output_format='markdown',
+                include_tables=True,
+            )
+            if result is not None:
+                return result
+        return self.content.decode(self.encoding, errors="replace")
 
 class Scraper(abc.ABC):
     _timeout : int = 30

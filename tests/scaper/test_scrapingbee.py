@@ -17,7 +17,7 @@ def test_scrapingbee_basic():
         )
         scraper = ScrapingBeeScraper(api_key="test_key")
         resp = scraper.scrape("https://example.com")
-        assert resp.text() == "<html><body>Scraped content</body></html>"
+        assert resp.content.decode(resp.encoding) == "<html><body>Scraped content</body></html>"
         assert resp.final_url == "https://example.com"
         assert resp.status_code == 200
 
@@ -106,4 +106,4 @@ async def test_scrapingbee_async():
         )
         scraper = ScrapingBeeScraper(api_key="test_key")
         resp = await scraper.async_scrape("https://async.example.com")
-        assert resp.text() == "<html>async scrapingbee content</html>"
+        assert resp.content.decode(resp.encoding) == "<html>async scrapingbee content</html>"

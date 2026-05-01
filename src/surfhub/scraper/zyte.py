@@ -25,6 +25,8 @@ class ZyteScraper(BaseScraper):
         
         return ScraperResponse(
             content=content,
+            content_type="text/html",
+            encoding="utf-8",
             final_url=url,
             status_code=resp.status_code,
         )
