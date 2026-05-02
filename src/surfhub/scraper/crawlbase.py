@@ -12,7 +12,7 @@ class CrawlbaseScraper(BaseScraper):
     """
     default_api_url = "https://api.crawlbase.com/"
     
-    def prepare_request(self, url, options = None) -> httpx.Request:
+    def prepare_request(self, url, options=None, use_browser: bool = False) -> httpx.Request:
         return httpx.Request(
             "GET", 
             self.api_url, 

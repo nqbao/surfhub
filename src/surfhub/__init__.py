@@ -1,7 +1,7 @@
 from .serper import get_serper
 from .serper.model import SerpRequestOptions, SerpResult
 from .scraper import get_scraper
-from .errors import SurfhubError, ScrapingError, SerpApiError
+from .errors import SurfhubError, ScrapingError, SerpApiError, RateLimitError
 
 
 __all__ = [
@@ -12,4 +12,5 @@ __all__ = [
     "SurfhubError",
     "ScrapingError",
     "SerpApiError",
+    "RateLimitError",
 ]
