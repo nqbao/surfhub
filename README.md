@@ -55,13 +55,15 @@ s.scrape("https://example.com")
 
 ## Caching
 
-All SERP providers support optional caching via `FileCache`:
+Both SERP and Scraper providers support optional caching via `FileCache`:
 
 ```python
 from surfhub.cache import FileCache
 
 cache = FileCache("cache.db")
+
 s = get_serper("serper", api_key="yourkey", cache=cache)
+s = get_scraper("browserless", api_key="yourkey", cache=cache)
 ```
 
 ## Options

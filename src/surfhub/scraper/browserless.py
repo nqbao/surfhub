@@ -1,29 +1,25 @@
 from .model import BaseScraper, ScraperResponse
 import httpx
 
+
 class BrowserlessScraper(BaseScraper):
     """
     Scraper that uses Browserless API
-    
+
     https://docs.browserless.io/http-apis/scrape
     """
+
     default_api_url = "https://chrome.browserless.io"
-    
+
     def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:
         # TODO: we can also use the /content api
         api_url = self.api_url + "/scrape?token=" + self.api_key
         return httpx.Request(
-            "POST", 
-            api_url,
-            json={
-                "url": url,
-                "elements": [{"selector": "html"}],
-                "waitFor": self.timeout
-            }
+            "POST", api_url, json={"url": url, "elements": [{"selector": "html"}], "waitFor": self.timeout}
         )
-        
+
     def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:
-        html = resp.json()['data'][0]['results'][0]['html']
+        html = resp.json()["data"][0]["results"][0]["html"]
         return ScraperResponse(
             content=html.encode("utf-8"),
             content_type="text/html",

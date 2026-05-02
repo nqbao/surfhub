@@ -8,6 +8,7 @@ class ExaSearch(BaseSerper):
     Uses neural/keyword/auto search and returns structured results.
     Auth: x-api-key header.
     """
+
     default_api_url = "https://api.exa.ai/search"
 
     def get_serp_params(self, query: str, page=None, num=None, options: SerpRequestOptions = None) -> dict:
@@ -47,7 +48,7 @@ class ExaSearch(BaseSerper):
                 title=r.get("title", ""),
                 link=r.get("url", ""),
                 snippet=r.get("text") or r.get("summary", ""),
-                prefix=""
+                prefix="",
             )
             for r in results
         ]

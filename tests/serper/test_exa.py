@@ -33,9 +33,7 @@ def test_exa_basic():
 
 def test_exa_auth_header():
     with respx.mock:
-        route = respx.post(EXA_URL).mock(
-            return_value=httpx.Response(200, json={"results": []})
-        )
+        route = respx.post(EXA_URL).mock(return_value=httpx.Response(200, json={"results": []}))
         serp = ExaSearch(api_key="my_secret_key")
         serp.serp("query")
         assert route.calls[0].request.headers["x-api-key"] == "my_secret_key"
@@ -87,9 +85,7 @@ def test_exa_default_type():
 
 def test_exa_empty_results():
     with respx.mock:
-        respx.post(EXA_URL).mock(
-            return_value=httpx.Response(200, json={"results": []})
-        )
+        respx.post(EXA_URL).mock(return_value=httpx.Response(200, json={"results": []}))
         serp = ExaSearch(api_key="test_key")
         resp = serp.serp("query")
         assert resp.items == []
@@ -101,11 +97,7 @@ async def test_exa_async():
         respx.post(EXA_URL).mock(
             return_value=httpx.Response(
                 200,
-                json={
-                    "results": [
-                        {"title": "Async Result", "url": "https://async.example.com", "text": "content"}
-                    ]
-                },
+                json={"results": [{"title": "Async Result", "url": "https://async.example.com", "text": "content"}]},
             )
         )
         serp = ExaSearch(api_key="test_key")

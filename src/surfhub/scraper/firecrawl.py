@@ -20,10 +20,12 @@ class FirecrawlScraper(BaseScraper):
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
             },
-            content=json.dumps({
-                "url": url,
-                "formats": ["markdown"],
-            }).encode(),
+            content=json.dumps(
+                {
+                    "url": url,
+                    "formats": ["markdown"],
+                }
+            ).encode(),
         )
 
     def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:

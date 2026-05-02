@@ -52,6 +52,7 @@ def test_exa_scraper_request_body():
         scraper = ExaScraper(api_key="test_key")
         scraper.scrape("https://example.com")
         import json
+
         body = json.loads(route.calls[0].request.content)
         assert body["ids"] == ["https://example.com"]
         assert body["text"] is True
@@ -59,9 +60,7 @@ def test_exa_scraper_request_body():
 
 def test_exa_scraper_empty_results():
     with respx.mock:
-        respx.post(EXA_CONTENTS_URL).mock(
-            return_value=httpx.Response(200, json={"results": []})
-        )
+        respx.post(EXA_CONTENTS_URL).mock(return_value=httpx.Response(200, json={"results": []}))
         scraper = ExaScraper(api_key="test_key")
         resp = scraper.scrape("https://example.com")
         assert resp.content.decode(resp.encoding) == ""
@@ -74,11 +73,7 @@ async def test_exa_scraper_async():
         respx.post(EXA_CONTENTS_URL).mock(
             return_value=httpx.Response(
                 200,
-                json={
-                    "results": [
-                        {"url": "https://async.example.com", "text": "async content"}
-                    ]
-                },
+                json={"results": [{"url": "https://async.example.com", "text": "async content"}]},
             )
         )
         scraper = ExaScraper(api_key="test_key")

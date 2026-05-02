@@ -7,6 +7,7 @@ from surfhub.serper.exa import ExaSearch
 from surfhub.serper.perplexity import PerplexitySearch
 from surfhub.serper.jina import JinaSearch
 
+
 def test_factory():
     serp = get_serper("google")
     assert isinstance(serp, GoogleCustomSearch)

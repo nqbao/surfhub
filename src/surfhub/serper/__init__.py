@@ -10,46 +10,41 @@ from .brave import BraveSearch
 from .exa import ExaSearch
 from .perplexity import PerplexitySearch
 from .jina import JinaSearch
+from .cached import CachedSerper
 from surfhub.cache.base import Cache
 
 
-def get_serper(provider, cache: Cache=None, api_key=None, **kwargs) -> BaseSerper:
+def get_serper(provider, cache: Cache = None, api_key=None, **kwargs) -> BaseSerper:
     if not provider:
         raise ValueError("Please provide a SERP provider")
-    
+
     kwargs["api_key"] = api_key
-     
+
     if provider == "valueserp":
-        return ValueSerp(cache=cache, **kwargs)
-    
-    if provider == "google":
-        return GoogleCustomSearch(cache=cache, **kwargs)
-    
-    if provider == "serper":
-        return SerperDev(cache=cache, **kwargs)
-    
-    if provider == "serpapi":
-        return SerpApi(cache=cache, **kwargs)
-    
-    if provider == "duckduckgo":
-        return DuckDuckGo(cache=cache, **kwargs)
-    
-    if provider == "tavily":
-        return Tavily(cache=cache, **kwargs)
-    
-    if provider == "you":
-        return YouSearch(cache=cache, **kwargs)
-    
-    if provider == "brave":
-        return BraveSearch(cache=cache, **kwargs)
+        serper = ValueSerp(**kwargs)
+    elif provider == "google":
+        serper = GoogleCustomSearch(**kwargs)
+    elif provider == "serper":
+        serper = SerperDev(**kwargs)
+    elif provider == "serpapi":
+        serper = SerpApi(**kwargs)
+    elif provider == "duckduckgo":
+        serper = DuckDuckGo(**kwargs)
+    elif provider == "tavily":
+        serper = Tavily(**kwargs)
+    elif provider == "you":
+        serper = YouSearch(**kwargs)
+    elif provider == "brave":
+        serper = BraveSearch(**kwargs)
+    elif provider == "exa":
+        serper = ExaSearch(**kwargs)
+    elif provider == "perplexity":
+        serper = PerplexitySearch(**kwargs)
+    elif provider == "jina":
+        serper = JinaSearch(**kwargs)
+    else:
+        raise ValueError(f"Unknown provider: {provider}")
 
-    if provider == "exa":
-        return ExaSearch(cache=cache, **kwargs)
-
-    if provider == "perplexity":
-        return PerplexitySearch(cache=cache, **kwargs)
-
-    if provider == "jina":
-        return JinaSearch(cache=cache, **kwargs)
-
-    raise ValueError(f"Unknown provider: {provider}")
+    if cache:
+        return CachedSerper(serper, cache)
+    return serper

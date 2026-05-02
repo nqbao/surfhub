@@ -102,9 +102,7 @@ class TestLocalScraperBrowser:
             assert resp.encoding == "utf-8"
             assert resp.status_code == 200
             assert resp.final_url == "https://example.com"
-            mock_page.goto.assert_called_once_with(
-                "https://example.com", wait_until="load", timeout=30000
-            )
+            mock_page.goto.assert_called_once_with("https://example.com", wait_until="load", timeout=30000)
         finally:
             self._uninstall_mock_playwright()
 
@@ -117,9 +115,7 @@ class TestLocalScraperBrowser:
             scraper.timeout = 60
             scraper.scrape("https://example.com", use_browser=True)
 
-            mock_page.goto.assert_called_once_with(
-                "https://example.com", wait_until="load", timeout=60000
-            )
+            mock_page.goto.assert_called_once_with("https://example.com", wait_until="load", timeout=60000)
         finally:
             self._uninstall_mock_playwright()
 
@@ -132,9 +128,7 @@ class TestLocalScraperBrowser:
             options = ScraperOptions(wait_until="networkidle")
             scraper.scrape("https://example.com", options=options, use_browser=True)
 
-            mock_page.goto.assert_called_once_with(
-                "https://example.com", wait_until="networkidle", timeout=30000
-            )
+            mock_page.goto.assert_called_once_with("https://example.com", wait_until="networkidle", timeout=30000)
         finally:
             self._uninstall_mock_playwright()
 
@@ -147,9 +141,7 @@ class TestLocalScraperBrowser:
             options = ScraperOptions(wait_until="domcontentloaded")
             scraper.scrape("https://example.com", options=options, use_browser=True)
 
-            mock_page.goto.assert_called_once_with(
-                "https://example.com", wait_until="domcontentloaded", timeout=30000
-            )
+            mock_page.goto.assert_called_once_with("https://example.com", wait_until="domcontentloaded", timeout=30000)
         finally:
             self._uninstall_mock_playwright()
 
@@ -161,9 +153,7 @@ class TestLocalScraperBrowser:
             scraper = LocalScraper()
             scraper.scrape("https://example.com", use_browser=True)
 
-            mock_page.goto.assert_called_once_with(
-                "https://example.com", wait_until="load", timeout=30000
-            )
+            mock_page.goto.assert_called_once_with("https://example.com", wait_until="load", timeout=30000)
         finally:
             self._uninstall_mock_playwright()
 
@@ -181,8 +171,6 @@ class TestLocalScraperBrowser:
             assert resp.encoding == "utf-8"
             assert resp.status_code == 200
             assert resp.final_url == "https://example.com"
-            mock_page.goto.assert_awaited_once_with(
-                "https://example.com", wait_until="load", timeout=30000
-            )
+            mock_page.goto.assert_awaited_once_with("https://example.com", wait_until="load", timeout=30000)
         finally:
             self._uninstall_mock_playwright()

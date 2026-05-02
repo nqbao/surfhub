@@ -35,7 +35,10 @@ def test_firecrawl_scraper_auth_header():
         route = respx.post(FIRECRAWL_URL).mock(
             return_value=httpx.Response(
                 200,
-                json={"success": True, "data": {"markdown": "content", "metadata": {"sourceURL": "https://example.com"}}},
+                json={
+                    "success": True,
+                    "data": {"markdown": "content", "metadata": {"sourceURL": "https://example.com"}},
+                },
             )
         )
         scraper = FirecrawlScraper(api_key="my_secret_key")
@@ -48,7 +51,10 @@ def test_firecrawl_scraper_request_body():
         route = respx.post(FIRECRAWL_URL).mock(
             return_value=httpx.Response(
                 200,
-                json={"success": True, "data": {"markdown": "content", "metadata": {"sourceURL": "https://example.com"}}},
+                json={
+                    "success": True,
+                    "data": {"markdown": "content", "metadata": {"sourceURL": "https://example.com"}},
+                },
             )
         )
         scraper = FirecrawlScraper(api_key="test_key")

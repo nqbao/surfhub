@@ -4,6 +4,7 @@ Usage:
     python tests/integration/integtest_local_browser.py
     pytest tests/integration/integtest_local_browser.py
 """
+
 import asyncio
 from surfhub.scraper import get_scraper
 from surfhub.scraper.model import ScraperOptions

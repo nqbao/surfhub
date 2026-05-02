@@ -3,6 +3,7 @@
 Usage:
     python tests/integration/integtest_duckduckgo.py
 """
+
 import time
 from surfhub.serper.duckduckgo import DuckDuckGo
 from surfhub.errors import SerpApiError
@@ -24,8 +25,7 @@ if __name__ == "__main__":
     page2 = ddg.serp("climate change", page=2, vqd=page1.vqd)
     assert len(page2.items) > 0, "page 2 should have results"
     page1_links = {r.link for r in page1.items}
-    assert any(r.link not in page1_links for r in page2.items), \
-        "page 2 should have different results from page 1"
+    assert any(r.link not in page1_links for r in page2.items), "page 2 should have different results from page 1"
     print("  OK")
 
     time.sleep(_DELAY)

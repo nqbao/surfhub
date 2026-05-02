@@ -10,6 +10,7 @@ class Tavily(BaseSerper):
     """
     Search via Tavily API
     """
+
     default_api_url = "https://api.tavily.com/search"
 
     def get_serp_params(self, query: str, page=None, num=None, options: SerpRequestOptions = None) -> dict:
@@ -18,7 +19,7 @@ class Tavily(BaseSerper):
         }
         if num is not None:
             params["max_results"] = num
-        
+
         if options:
             if options.date_start or options.date_end:
                 if options.date_start:
@@ -27,10 +28,10 @@ class Tavily(BaseSerper):
                     params["end_date"] = options.date_end
             elif options.time_range:
                 params["time_range"] = options.time_range.value
-            
+
             if options.extra_options:
                 params.update(options.extra_options)
-        
+
         return params
 
     @property
@@ -55,11 +56,6 @@ class Tavily(BaseSerper):
     def parse_result(self, resp: dict) -> List[SerpResult]:
         results = resp.get("results", [])
         return [
-            SerpResult(
-                title=i.get("title"),
-                link=i.get("url"),
-                snippet=i.get("content", ""),
-                prefix=""
-            )
+            SerpResult(title=i.get("title"), link=i.get("url"), snippet=i.get("content", ""), prefix="")
             for i in results
         ]

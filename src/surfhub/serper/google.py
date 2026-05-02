@@ -2,18 +2,19 @@ from typing import List
 from .model import BaseSerper, SerpResult
 from surfhub.errors import SerpApiError
 
+
 class GoogleCustomSearch(BaseSerper):
     """
     Search Google via Google Custom Search API
     """
-    
+
     default_api_url = "https://www.googleapis.com/customsearch/v1"
-    
+
     def get_serp_params(self, query: str, page=None, num=None, options=None) -> dict:
         params = {
             "q": query,
         }
-        
+
         if not self.api_key:
             raise ValueError("Please provide a Google API key")
         if ":" not in self.api_key:
@@ -22,35 +23,32 @@ class GoogleCustomSearch(BaseSerper):
         cx, key = self.api_key.split(":", 2)
         params["key"] = key
         params["cx"] = cx
-        
+
         if options:
             if options.lang:
                 params["hl"] = options.lang
-                
+
             if options.country:
                 params["gl"] = options.country
-                
+
             if options.extra_options:
                 params.update(options.extra_options)
-                
+
         if page is not None:
             params["page"] = page
-            
+
         if num is not None:
             params["num"] = num
 
         return params
-    
+
     def parse_result(self, resp: dict) -> List[SerpResult]:
-        if 'error' in resp:
-            raise SerpApiError(resp['error']['message'])
+        if "error" in resp:
+            raise SerpApiError(resp["error"]["message"])
 
         return [
             SerpResult(
-                title=i.get("title"),
-                link=i.get("link"),
-                snippet=i.get("snippet", ""),
-                prefix=i.get("prefix", "")
+                title=i.get("title"), link=i.get("link"), snippet=i.get("snippet", ""), prefix=i.get("prefix", "")
             )
-            for i in resp['items']
+            for i in resp["items"]
         ]

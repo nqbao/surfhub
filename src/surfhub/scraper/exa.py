@@ -9,6 +9,7 @@ class ExaScraper(BaseScraper):
     Fetches cleaned page text for a given URL via POST /contents.
     Auth: x-api-key header.
     """
+
     default_api_url = "https://api.exa.ai/contents"
 
     def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:
@@ -19,10 +20,12 @@ class ExaScraper(BaseScraper):
                 "x-api-key": self.api_key,
                 "Content-Type": "application/json",
             },
-            content=json.dumps({
-                "ids": [url],
-                "text": True,
-            }).encode(),
+            content=json.dumps(
+                {
+                    "ids": [url],
+                    "text": True,
+                }
+            ).encode(),
         )
 
     def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:

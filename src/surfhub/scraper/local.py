@@ -39,7 +39,9 @@ class LocalScraper(Scraper):
             final_url=str(resp.url),
         )
 
-    async def async_scrape(self, url: str, options: ScraperOptions = None, use_browser: bool = False) -> ScraperResponse:
+    async def async_scrape(
+        self, url: str, options: ScraperOptions = None, use_browser: bool = False
+    ) -> ScraperResponse:
         if use_browser:
             return await self._async_scrape_with_browser(url, options)
 

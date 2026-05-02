@@ -1,5 +1,6 @@
 class SurfhubError(Exception):
     """Base exception for all surfhub errors."""
+
     pass
 
 
@@ -21,4 +22,5 @@ class SerpApiError(SurfhubError):
 
 class RateLimitError(SurfhubError):
     """Raised when the target service throttles or blocks the request."""
+
     pass

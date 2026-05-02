@@ -12,8 +12,8 @@ class DuckDuckGo(BaseSerper):
 
     default_api_url = "https://html.duckduckgo.com/html/"
 
-    def __init__(self, api_key: str = None, cache=None):
-        super().__init__(api_key=api_key, cache=cache)
+    def __init__(self, api_key: str = None):
+        super().__init__(api_key=api_key)
         self._client = None
         self._async_client = None
 
@@ -47,7 +47,9 @@ class DuckDuckGo(BaseSerper):
             "Accept-Language": "en-US,en;q=0.9",
         }
 
-    def serp(self, query: str, page=None, num=None, vqd: Optional[str] = None, options: Optional[SerpRequestOptions] = None) -> DuckDuckGoSerpResponse:
+    def serp(
+        self, query: str, page=None, num=None, vqd: Optional[str] = None, options: Optional[SerpRequestOptions] = None
+    ) -> DuckDuckGoSerpResponse:
         if vqd:
             extra = dict(options.extra_options or {}) if options else {}
             extra["vqd"] = vqd
@@ -57,23 +59,13 @@ class DuckDuckGo(BaseSerper):
                 options = SerpRequestOptions(extra_options=extra)
 
         params = self.get_serp_params(query, page, num, options)
+        client = self._get_client()
+        items, resp_text = self._fetch_and_parse(client, params)
+        return self.build_response(items, resp_text)
 
-        cache_key = None
-        items = None
-        cached = False
-        resp_text = None
-        if self.cache:
-            cache_key = self._cache_key(params)
-            items = self.cache.get(cache_key)
-            cached = items is not None
-
-        if items is None:
-            client = self._get_client()
-            items, resp_text = self._fetch_and_parse(client, params, cache_key)
-
-        return self.build_response(items, cached, resp_text)
-
-    async def async_serp(self, query: str, page=None, num=None, vqd: Optional[str] = None, options: Optional[SerpRequestOptions] = None) -> DuckDuckGoSerpResponse:
+    async def async_serp(
+        self, query: str, page=None, num=None, vqd: Optional[str] = None, options: Optional[SerpRequestOptions] = None
+    ) -> DuckDuckGoSerpResponse:
         if vqd:
             extra = dict(options.extra_options or {}) if options else {}
             extra["vqd"] = vqd
@@ -83,21 +75,9 @@ class DuckDuckGo(BaseSerper):
                 options = SerpRequestOptions(extra_options=extra)
 
         params = self.get_serp_params(query, page, num, options)
-
-        cache_key = None
-        items = None
-        cached = False
-        resp_text = None
-        if self.cache:
-            cache_key = self._cache_key(params)
-            items = self.cache.get(cache_key)
-            cached = items is not None
-
-        if items is None:
-            client = self._get_async_client()
-            items, resp_text = await self._async_fetch_and_parse(client, params, cache_key)
-
-        return self.build_response(items, cached, resp_text)
+        client = self._get_async_client()
+        items, resp_text = await self._async_fetch_and_parse(client, params)
+        return self.build_response(items, resp_text)
 
     def get_serp_params(self, query: str, page=None, num=None, options: Optional[SerpRequestOptions] = None) -> dict:
         params = {
@@ -129,39 +109,41 @@ class DuckDuckGo(BaseSerper):
 
         return params
 
-    def _fetch_and_parse(self, client: httpx.Client, params: dict, cache_key: str):
+    def _fetch_and_parse(self, client: httpx.Client, params: dict):
         headers = {**self.request_headers}
         cookies = {}
         if "kl" in params:
             cookies["kl"] = params["kl"]
         if "df" in params:
             cookies["df"] = params["df"]
-        resp = client.get(self.endpoint, params=params, headers=headers, cookies=cookies, timeout=self.timeout, follow_redirects=True)
+        resp = client.get(
+            self.endpoint, params=params, headers=headers, cookies=cookies, timeout=self.timeout, follow_redirects=True
+        )
         resp.raise_for_status()
         self._check_throttle(resp)
         items = self.parse_result(resp.text)
-        if self.cache and cache_key:
-            self.cache.set(cache_key, items)
         return items, resp.text
 
-    async def _async_fetch_and_parse(self, client: httpx.AsyncClient, params: dict, cache_key: str):
+    async def _async_fetch_and_parse(self, client: httpx.AsyncClient, params: dict):
         headers = {**self.request_headers}
         cookies = {}
         if "kl" in params:
             cookies["kl"] = params["kl"]
         if "df" in params:
             cookies["df"] = params["df"]
-        resp = await client.get(self.endpoint, params=params, headers=headers, cookies=cookies, timeout=self.timeout, follow_redirects=True)
+        resp = await client.get(
+            self.endpoint, params=params, headers=headers, cookies=cookies, timeout=self.timeout, follow_redirects=True
+        )
         resp.raise_for_status()
         self._check_throttle(resp)
         items = self.parse_result(resp.text)
-        if self.cache and cache_key:
-            self.cache.set(cache_key, items)
         return items, resp.text
 
     def _check_throttle(self, resp: httpx.Response):
         if resp.status_code == 202 or "result__body" not in resp.text:
-            raise RateLimitError("DuckDuckGo returned a non-results page — likely rate-limited or blocked. Try again later.")
+            raise RateLimitError(
+                "DuckDuckGo returned a non-results page — likely rate-limited or blocked. Try again later."
+            )
 
     def parse_result(self, resp: str) -> List[SerpResult]:
         soup = BeautifulSoup(resp, "html.parser")
@@ -180,21 +162,14 @@ class DuckDuckGo(BaseSerper):
                 elif "y.js" in href:
                     continue
 
-                results.append(
-                    SerpResult(
-                        title=title,
-                        link=href,
-                        snippet=snippet,
-                        prefix=""
-                    )
-                )
+                results.append(SerpResult(title=title, link=href, snippet=snippet, prefix=""))
         return results
 
-    def build_response(self, items: List[SerpResult], cached: bool, resp_data=None) -> DuckDuckGoSerpResponse:
+    def build_response(self, items: List[SerpResult], resp_data=None) -> DuckDuckGoSerpResponse:
         vqd = None
         if resp_data:
             soup = BeautifulSoup(resp_data, "html.parser")
             vqd_input = soup.find("input", {"name": "vqd"})
             if vqd_input:
                 vqd = vqd_input.get("value")
-        return DuckDuckGoSerpResponse(items=items, cached=cached, vqd=vqd)
+        return DuckDuckGoSerpResponse(items=items, cached=False, vqd=vqd)

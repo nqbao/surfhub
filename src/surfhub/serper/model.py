@@ -3,17 +3,17 @@ import httpx
 from pydantic import BaseModel, field_validator
 from typing import Optional, List, Dict
 from enum import Enum
-from surfhub.cache import Cache
-from surfhub.utils import hash_dict
 import re
 
 
 class TimeRange(str, Enum):
     """Time range filter for search results"""
+
     DAY = "d"
     WEEK = "w"
     MONTH = "m"
     YEAR = "y"
+
 
 class SerpRequestOptions(BaseModel):
     """
@@ -29,6 +29,7 @@ class SerpRequestOptions(BaseModel):
         date_end (Optional[str]): End date for custom date range in YYYY-MM-DD format.
         extra_options (Optional[dict]): Additional custom options to pass to the SERP API.
     """
+
     lang: Optional[str] = None
     country: Optional[str] = None
     location: Optional[str] = None
@@ -37,53 +38,56 @@ class SerpRequestOptions(BaseModel):
     date_start: Optional[str] = None
     date_end: Optional[str] = None
     extra_options: Optional[dict] = None
-    
-    @field_validator('date_start', 'date_end')
+
+    @field_validator("date_start", "date_end")
     @classmethod
     def validate_date_format(cls, v):
         if v is None:
             return v
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', v):
-            raise ValueError('Date must be in YYYY-MM-DD format')
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
+            raise ValueError("Date must be in YYYY-MM-DD format")
         return v
 
+
 class SerpResult(BaseModel):
-    title : str
-    link : str
-    snippet : str
+    title: str
+    link: str
+    snippet: str
     prefix: str
+
 
 class SerpResponse(BaseModel):
     items: List[SerpResult]
-    cached : Optional[bool]
+    cached: Optional[bool]
     metadata: Optional[dict] = None
 
 
 class DuckDuckGoSerpResponse(SerpResponse):
     vqd: Optional[str] = None
 
+
 class SerpApi(abc.ABC):
     @abc.abstractmethod
-    def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
+    def serp(self, query: str, page=None, num=None, options: Optional[SerpRequestOptions] = None) -> SerpResponse:
         pass
 
-    async def async_serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
+    async def async_serp(
+        self, query: str, page=None, num=None, options: Optional[SerpRequestOptions] = None
+    ) -> SerpResponse:
         return self.serp(query, page, num, options)
 
 
 class BaseSerper(SerpApi):
-    default_api_url : str = None
-    cache : Optional[Cache] = None
-    _api_key : str = None
-    _api_url : str = None
-    _timeout : int = 30
+    default_api_url: str = None
+    _api_key: str = None
+    _api_url: str = None
+    _timeout: int = 30
 
-    def __init__(self, api_key : str = None, cache : Optional[Cache] = None):
+    def __init__(self, api_key: str = None):
         if not self.default_api_url:
             raise NotImplementedError("default_api_url is not set")
-        
+
         self._api_key = api_key
-        self.cache = cache
 
     @property
     def request_method(self) -> str:
@@ -93,13 +97,10 @@ class BaseSerper(SerpApi):
     def request_headers(self) -> Dict[str, str]:
         return {}
 
-    def build_response(self, items: List[SerpResult], cached: bool, resp_data=None) -> SerpResponse:
+    def build_response(self, items: List[SerpResult], cached: bool = False, resp_data=None) -> SerpResponse:
         return SerpResponse(items=items, cached=cached)
 
-    def _cache_key(self, params: dict) -> str:
-        return hash_dict({**params, "endpoint": self.endpoint, "provider": self.__class__.__name__})
-    
-    def _fetch_and_parse(self, client: httpx.Client, params: dict, cache_key: str):
+    def _fetch_and_parse(self, client: httpx.Client, params: dict):
         headers = {**self.request_headers}
         if self.request_method == "POST":
             resp = client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
@@ -108,11 +109,9 @@ class BaseSerper(SerpApi):
         resp.raise_for_status()
         data = resp.json()
         items = self.parse_result(data)
-        if self.cache and cache_key:
-            self.cache.set(cache_key, items)
         return items, data
 
-    async def _async_fetch_and_parse(self, client: httpx.AsyncClient, params: dict, cache_key: str):
+    async def _async_fetch_and_parse(self, client: httpx.AsyncClient, params: dict):
         headers = {**self.request_headers}
         if self.request_method == "POST":
             resp = await client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
@@ -121,48 +120,24 @@ class BaseSerper(SerpApi):
         resp.raise_for_status()
         data = resp.json()
         items = self.parse_result(data)
-        if self.cache and cache_key:
-            self.cache.set(cache_key, items)
         return items, data
-    
-    def serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
-        params = self.get_serp_params(query, page, num, options)
-        
-        cache_key = None
-        items  = None
-        cached = False
-        resp_data = None
-        if self.cache:
-            cache_key = self._cache_key(params)
-            items = self.cache.get(cache_key)
-            cached = items is not None
-        
-        if items is None:
-            with httpx.Client() as client:
-                items, resp_data = self._fetch_and_parse(client, params, cache_key)
-        
-        return self.build_response(items, cached, resp_data)
 
-    async def async_serp(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> SerpResponse:
+    def serp(self, query: str, page=None, num=None, options: Optional[SerpRequestOptions] = None) -> SerpResponse:
         params = self.get_serp_params(query, page, num, options)
-        
-        cache_key = None
-        items = None
-        cached = False
-        resp_data = None
-        if self.cache:
-            cache_key = self._cache_key(params)
-            items = self.cache.get(cache_key)
-            cached = items is not None
-        
-        if items is None:
-            async with httpx.AsyncClient() as client:
-                items, resp_data = await self._async_fetch_and_parse(client, params, cache_key)
-        
-        return self.build_response(items, cached, resp_data)
+        with httpx.Client() as client:
+            items, resp_data = self._fetch_and_parse(client, params)
+        return self.build_response(items, False, resp_data)
+
+    async def async_serp(
+        self, query: str, page=None, num=None, options: Optional[SerpRequestOptions] = None
+    ) -> SerpResponse:
+        params = self.get_serp_params(query, page, num, options)
+        async with httpx.AsyncClient() as client:
+            items, resp_data = await self._async_fetch_and_parse(client, params)
+        return self.build_response(items, False, resp_data)
 
     @abc.abstractmethod
-    def get_serp_params(self, query : str, page = None, num = None, options : Optional[SerpRequestOptions] = None) -> dict:
+    def get_serp_params(self, query: str, page=None, num=None, options: Optional[SerpRequestOptions] = None) -> dict:
         pass
 
     @abc.abstractmethod
@@ -172,23 +147,23 @@ class BaseSerper(SerpApi):
     @property
     def endpoint(self) -> str:
         return self._api_url or self.default_api_url
-    
+
     @endpoint.setter
-    def endpoint(self, value : str):
+    def endpoint(self, value: str):
         self._api_url = value
 
     @property
     def api_key(self) -> str:
         return self._api_key
-    
+
     @api_key.setter
-    def api_key(self, value : str):
+    def api_key(self, value: str):
         self._api_key = value
 
     @property
     def timeout(self) -> int:
         return self._timeout
-    
+
     @timeout.setter
-    def timeout(self, value : int):
+    def timeout(self, value: int):
         self._timeout = value
