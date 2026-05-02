@@ -7,13 +7,13 @@ class ZyteScraper(BaseScraper):
     """
     default_api_url = "https://api.zyte.com/v1/extract"
     
-    def prepare_request(self, url, options = None) -> httpx.Request:
+    def prepare_request(self, url, options=None, use_browser: bool = False) -> httpx.Request:
         return httpx.Request(
             "POST", 
             self.api_url,
             json={
                 "url": url,  
-                "browserHtml": True,
+                "browserHtml": use_browser,
             }
         )
         
@@ -21,7 +21,8 @@ class ZyteScraper(BaseScraper):
         return (self.api_key, "")
         
     def parse_response(self, url: str, resp: httpx.Response) -> ScraperResponse:
-        content = resp.json()['browserHtml']
+        data = resp.json()
+        content = data.get("browserHtml") or data.get("httpResponseBody", b"").decode("utf-8")
         
         return ScraperResponse(
             content=content,

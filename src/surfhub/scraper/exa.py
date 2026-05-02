@@ -11,7 +11,7 @@ class ExaScraper(BaseScraper):
     """
     default_api_url = "https://api.exa.ai/contents"
 
-    def prepare_request(self, url: str, options=None) -> httpx.Request:
+    def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:
         return httpx.Request(
             "POST",
             self.api_url,

@@ -12,7 +12,7 @@ class FirecrawlScraper(BaseScraper):
 
     default_api_url = "https://api.firecrawl.dev/v1/scrape"
 
-    def prepare_request(self, url: str, options=None) -> httpx.Request:
+    def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:
         return httpx.Request(
             "POST",
             self.api_url,

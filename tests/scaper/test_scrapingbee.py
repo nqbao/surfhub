@@ -49,10 +49,10 @@ def test_scrapingbee_render_js_default():
         )
         scraper = ScrapingBeeScraper(api_key="test_key")
         scraper.scrape("https://example.com")
-        assert "render_js" not in route.calls[0].request.url.params
+        assert route.calls[0].request.url.params["render_js"] == "false"
 
 
-def test_scrapingbee_render_js_false():
+def test_scrapingbee_use_browser():
     with respx.mock:
         route = respx.get(SCRAPINGBEE_URL).mock(
             return_value=httpx.Response(
@@ -61,9 +61,9 @@ def test_scrapingbee_render_js_false():
                 text="<html>content</html>",
             )
         )
-        scraper = ScrapingBeeScraper(api_key="test_key", render_js=False)
-        scraper.scrape("https://example.com")
-        assert route.calls[0].request.url.params["render_js"] == "false"
+        scraper = ScrapingBeeScraper(api_key="test_key")
+        scraper.scrape("https://example.com", use_browser=True)
+        assert "render_js" not in route.calls[0].request.url.params
 
 
 def test_scrapingbee_premium_proxy():

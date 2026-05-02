@@ -132,7 +132,7 @@ def test_jina_scraper_default_engine_is_direct():
         assert route.calls[0].request.headers["X-Engine"] == "direct"
 
 
-def test_jina_scraper_browser_engine():
+def test_jina_scraper_use_browser():
     with respx.mock:
         route = respx.get(JINA_URL).mock(
             return_value=httpx.Response(
@@ -141,14 +141,9 @@ def test_jina_scraper_browser_engine():
                 text="content",
             )
         )
-        scraper = JinaScraper(api_key="test_key", engine="browser")
-        scraper.scrape("https://example.com")
+        scraper = JinaScraper(api_key="test_key")
+        scraper.scrape("https://example.com", use_browser=True)
         assert route.calls[0].request.headers["X-Engine"] == "browser"
-
-
-def test_jina_scraper_invalid_engine():
-    with pytest.raises(ValueError, match="Invalid engine"):
-        JinaScraper(api_key="test_key", engine="phantom")
 
 
 def test_jina_scraper_auth_header():

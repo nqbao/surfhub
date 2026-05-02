@@ -9,7 +9,7 @@ class BrowserlessScraper(BaseScraper):
     """
     default_api_url = "https://chrome.browserless.io"
     
-    def prepare_request(self, url: str, options=None) -> httpx.Request:
+    def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:
         # TODO: we can also use the /content api
         api_url = self.api_url + "/scrape?token=" + self.api_key
         return httpx.Request(

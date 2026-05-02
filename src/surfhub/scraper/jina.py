@@ -2,7 +2,6 @@ from .model import BaseScraper, ScraperResponse
 import httpx
 
 VALID_FORMATS = {"html", "markdown", "text"}
-VALID_ENGINES = {"direct", "browser", "cf-browser-rendering"}
 
 
 class JinaScraper(BaseScraper):
@@ -14,25 +13,21 @@ class JinaScraper(BaseScraper):
     Args:
         api_key: Jina.ai API key (optional for free tier).
         format: Return format — "html" (default), "markdown", or "text".
-        engine: Rendering engine — "direct" (default, fast), "browser" (JS-heavy sites), "cf-browser-rendering" (experimental).
     """
 
     default_api_url = "https://r.jina.ai"
 
-    def __init__(self, api_key: str = None, format: str = "html", engine: str = "direct"):
+    def __init__(self, api_key: str = None, format: str = "html"):
         super().__init__(api_key=api_key)
         if format not in VALID_FORMATS:
             raise ValueError(f"Invalid format '{format}'. Must be one of: {', '.join(sorted(VALID_FORMATS))}")
-        if engine not in VALID_ENGINES:
-            raise ValueError(f"Invalid engine '{engine}'. Must be one of: {', '.join(sorted(VALID_ENGINES))}")
         self._format = format
-        self._engine = engine
 
-    def prepare_request(self, url: str, options=None) -> httpx.Request:
+    def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:
         api_url = f"{self.api_url.rstrip('/')}/{url}"
         headers = {
             "X-Return-Format": self._format,
-            "X-Engine": self._engine,
+            "X-Engine": "browser" if use_browser else "direct",
         }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
