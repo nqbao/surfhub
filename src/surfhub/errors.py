@@ -40,17 +40,27 @@ _INSUFFICIENT_FUNDS_KEYWORDS = [
     "exceeded your quota",
     "out of credits",
     "no credits",
+    "no_more_credits",
+    "credits exhausted",
     "quota limit",
     "payment required",
     "billing",
-    "balance",
+    "insufficientbalance",
+    "run out of",
+    "daily limit",
+    "dailylimit",
+    "account suspended",
+    "account-suspended",
+    "recharge",
+    "budget exceeded",
+    "plan limit",
 ]
 
 
 def is_insufficient_funds(status_code: int, body: str) -> bool:
     if status_code == 402:
         return True
-    if status_code in (403, 429):
+    if status_code in (403, 429, 432):
         body_lower = body.lower()
         return any(kw in body_lower for kw in _INSUFFICIENT_FUNDS_KEYWORDS)
     return False

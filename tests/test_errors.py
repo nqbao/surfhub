@@ -29,7 +29,13 @@ class TestIsInsufficientFunds:
         assert is_insufficient_funds(403, "quota limit reached") is True
         assert is_insufficient_funds(403, "payment required") is True
         assert is_insufficient_funds(403, "billing issue") is True
-        assert is_insufficient_funds(403, "low balance") is True
+        # real API patterns
+        assert is_insufficient_funds(403, "daily limit exceeded") is True
+        assert is_insufficient_funds(403, "dailyLimitExceeded") is True
+        assert is_insufficient_funds(403, "account suspended") is True
+        assert is_insufficient_funds(403, "InsufficientBalanceError") is True
+        assert is_insufficient_funds(403, "please recharge") is True
+        assert is_insufficient_funds(403, "budget exceeded") is True
 
     def test_status_403_without_keywords(self):
         assert is_insufficient_funds(403, "access denied") is False
@@ -39,10 +45,24 @@ class TestIsInsufficientFunds:
     def test_status_429_with_keywords(self):
         assert is_insufficient_funds(429, "quota exceeded") is True
         assert is_insufficient_funds(429, "insufficient credits") is True
+        # SerpApi real error: 429 + "Your account has run out of searches"
+        assert is_insufficient_funds(429, "Your account has run out of searches") is True
+        assert is_insufficient_funds(429, "run out of credits") is True
+        assert is_insufficient_funds(429, "credits exhausted") is True
+        assert is_insufficient_funds(429, "no_more_credits") is True
 
     def test_status_429_without_keywords(self):
         assert is_insufficient_funds(429, "rate limited") is False
         assert is_insufficient_funds(429, "too many requests") is False
+        # regular Brave Search rate limit (no body keywords)
+        assert is_insufficient_funds(429, "") is False
+
+    def test_status_432_plan_limit(self):
+        # Tavily uses 432 for plan limit exceeded
+        assert is_insufficient_funds(432, "plan limit exceeded") is True
+        assert is_insufficient_funds(432, "quota exceeded for plan") is True
+        # 432 only triggers with keywords
+        assert is_insufficient_funds(432, "") is False
 
     def test_other_status_codes(self):
         assert is_insufficient_funds(200, "insufficient balance") is False
@@ -251,3 +271,141 @@ class TestValueSerpInsufficientFunds:
             from surfhub.errors import SerpApiError
             with pytest.raises(SerpApiError, match="invalid api key"):
                 serp.serp("test query")
+
+
+class TestRealApiPatterns:
+    """Tests matching actual error responses from live API providers."""
+
+    def test_serpapi_run_out_of_searches(self):
+        # SerpApi returns 200 + {"error": "Your account has run out of searches."}
+        # but also 429 at HTTP level when exhausted
+        with respx.mock:
+            respx.get("https://serpapi.com/search").mock(
+                return_value=httpx.Response(200, json={"error": "Your account has run out of searches."})
+            )
+            serp = SerpApiProvider(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_google_daily_limit_exceeded(self):
+        # Google CSE: 200 + {"error": {"message": "Request throttled due to daily limit being reached."}}
+        with respx.mock:
+            respx.get("https://www.googleapis.com/customsearch/v1").mock(
+                return_value=httpx.Response(
+                    200,
+                    json={
+                        "error": {
+                            "code": 403,
+                            "message": "Request throttled due to daily limit being reached.",
+                            "errors": [{"reason": "dailyLimitExceeded"}],
+                        }
+                    },
+                )
+            )
+            serp = GoogleCustomSearch(api_key="cx:key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_perplexity_402(self):
+        # Perplexity: 402 + {"error": {"message": "Insufficient credits", "type": "billing_error"}}
+        with respx.mock:
+            respx.post("https://api.perplexity.ai/chat/completions").mock(
+                return_value=httpx.Response(
+                    402,
+                    json={"error": {"message": "Insufficient credits", "type": "billing_error"}},
+                )
+            )
+            from surfhub.serper.perplexity import PerplexitySearch
+            serp = PerplexitySearch(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_firecrawl_402(self):
+        # Firecrawl: 402 + {"success": false, "error": "Payment required to access this resource."}
+        with respx.mock:
+            respx.post("https://api.firecrawl.dev/v1/scrape").mock(
+                return_value=httpx.Response(
+                    402,
+                    json={"success": False, "error": "Payment required to access this resource."},
+                )
+            )
+            from surfhub.scraper.firecrawl import FirecrawlScraper
+            scraper = FirecrawlScraper(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                scraper.scrape("http://example.com")
+
+    def test_exa_402_no_more_credits(self):
+        # ExaSearch: 402 + {"tag": "NO_MORE_CREDITS", "error": "..."}
+        with respx.mock:
+            respx.post("https://api.exa.ai/search").mock(
+                return_value=httpx.Response(
+                    402,
+                    json={"requestId": "abc123", "error": "Account credits exhausted", "tag": "NO_MORE_CREDITS"},
+                )
+            )
+            from surfhub.serper.exa import ExaSearch
+            serp = ExaSearch(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_jina_insufficient_balance(self):
+        # Jina: 402 + {"name": "InsufficientBalanceError", "message": "Account balance not enough"}
+        with respx.mock:
+            respx.post("https://s.jina.ai").mock(
+                return_value=httpx.Response(
+                    402,
+                    json={
+                        "data": None,
+                        "code": 402,
+                        "name": "InsufficientBalanceError",
+                        "status": 40203,
+                        "message": "Account balance not enough to run this query, please recharge.",
+                        "readableMessage": "InsufficientBalanceError: Account balance not enough",
+                    },
+                )
+            )
+            from surfhub.serper.jina import JinaSearch
+            serp = JinaSearch(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_tavily_432_plan_limit(self):
+        # Tavily: HTTP 432 Plan Limit Exceeded
+        with respx.mock:
+            respx.post("https://api.tavily.com/search").mock(
+                return_value=httpx.Response(
+                    432,
+                    json={"error": "plan limit exceeded"},
+                )
+            )
+            from surfhub.serper.tavily import Tavily
+            serp = Tavily(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_exa_402_budget_exceeded(self):
+        # ExaSearch: 402 + {"tag": "API_KEY_BUDGET_EXCEEDED"}
+        with respx.mock:
+            respx.post("https://api.exa.ai/search").mock(
+                return_value=httpx.Response(
+                    402,
+                    json={"requestId": "xyz789", "error": "Key budget exceeded", "tag": "API_KEY_BUDGET_EXCEEDED"},
+                )
+            )
+            from surfhub.serper.exa import ExaSearch
+            serp = ExaSearch(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                serp.serp("test query")
+
+    def test_zyte_account_suspended(self):
+        # Zyte: 403 + {"status": 403, "type": "/auth/account-suspended"}
+        with respx.mock:
+            respx.post("https://api.zyte.com/v1/extract").mock(
+                return_value=httpx.Response(
+                    403,
+                    json={"status": 403, "type": "/auth/account-suspended"},
+                )
+            )
+            scraper = ZyteScraper(api_key="test_key")
+            with pytest.raises(InsufficientFundsError):
+                scraper.scrape("http://example.com")
