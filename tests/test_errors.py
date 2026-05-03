@@ -25,10 +25,10 @@ class TestIsInsufficientFunds:
         assert is_insufficient_funds(403, "Quota Exceeded") is True
         assert is_insufficient_funds(403, "exceeded your quota") is True
         assert is_insufficient_funds(403, "out of credits") is True
-        assert is_insufficient_funds(403, "no credits remaining") is True
+        assert is_insufficient_funds(403, "no_more_credits") is True
         assert is_insufficient_funds(403, "quota limit reached") is True
         assert is_insufficient_funds(403, "payment required") is True
-        assert is_insufficient_funds(403, "billing issue") is True
+        assert is_insufficient_funds(403, "billing error") is True
         # real API patterns
         assert is_insufficient_funds(403, "daily limit exceeded") is True
         assert is_insufficient_funds(403, "dailyLimitExceeded") is True
@@ -163,6 +163,17 @@ class TestSerperBaseInsufficientFunds:
             serp = BraveSearch(api_key="test_key")
             with pytest.raises(httpx.HTTPStatusError):
                 serp.serp("test query")
+
+    @pytest.mark.anyio
+    async def test_async_402_raises_insufficient_funds(self):
+        with respx.mock:
+            respx.get("https://api.search.brave.com/res/v1/web/search").mock(
+                return_value=httpx.Response(402, text="payment required")
+            )
+            serp = BraveSearch(api_key="test_key")
+            with pytest.raises(InsufficientFundsError) as exc:
+                await serp.async_serp("test query")
+            assert exc.value.status_code == 402
 
 
 class TestSerpApiProviderInsufficientFunds:
