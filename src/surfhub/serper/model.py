@@ -4,6 +4,7 @@ from pydantic import BaseModel, field_validator
 from typing import Optional, List, Dict
 from enum import Enum
 import re
+from surfhub.errors import raise_for_insufficient_funds
 
 
 class TimeRange(str, Enum):
@@ -102,22 +103,38 @@ class BaseSerper(SerpApi):
 
     def _fetch_and_parse(self, client: httpx.Client, params: dict):
         headers = {**self.request_headers}
-        if self.request_method == "POST":
-            resp = client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
-        else:
-            resp = client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
-        resp.raise_for_status()
+        try:
+            if self.request_method == "POST":
+                resp = client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
+            else:
+                resp = client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
+            resp.raise_for_status()
+        # Insufficient fund detection is best-effort at the HTTP level:
+        # only httpx.HTTPStatusError is intercepted. If a provider enforces
+        # quota via connection resets or other transport failures, those are
+        # not caught here.
+        except httpx.HTTPStatusError as e:
+            raise_for_insufficient_funds(e.response)
+            raise
         data = resp.json()
         items = self.parse_result(data)
         return items, data
 
     async def _async_fetch_and_parse(self, client: httpx.AsyncClient, params: dict):
         headers = {**self.request_headers}
-        if self.request_method == "POST":
-            resp = await client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
-        else:
-            resp = await client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
-        resp.raise_for_status()
+        try:
+            if self.request_method == "POST":
+                resp = await client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
+            else:
+                resp = await client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
+            resp.raise_for_status()
+        # Insufficient fund detection is best-effort at the HTTP level:
+        # only httpx.HTTPStatusError is intercepted. If a provider enforces
+        # quota via connection resets or other transport failures, those are
+        # not caught here.
+        except httpx.HTTPStatusError as e:
+            raise_for_insufficient_funds(e.response)
+            raise
         data = resp.json()
         items = self.parse_result(data)
         return items, data

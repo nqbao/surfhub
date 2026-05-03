@@ -1,6 +1,6 @@
 from typing import List
 from .model import BaseSerper, SerpResult
-from surfhub.errors import SerpApiError
+from surfhub.errors import SerpApiError, check_insufficient_funds
 
 
 class GoogleCustomSearch(BaseSerper):
@@ -44,6 +44,7 @@ class GoogleCustomSearch(BaseSerper):
 
     def parse_result(self, resp: dict) -> List[SerpResult]:
         if "error" in resp:
+            check_insufficient_funds(resp["error"]["message"])
             raise SerpApiError(resp["error"]["message"])
 
         return [
