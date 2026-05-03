@@ -1,5 +1,7 @@
 from typing import Optional
 
+import httpx
+
 
 class SurfhubError(Exception):
     """Base exception for all surfhub errors."""
@@ -10,7 +12,7 @@ class SurfhubError(Exception):
 class ScrapingError(SurfhubError):
     """Raised when a scraping operation fails."""
 
-    def __init__(self, message: str, status_code: int = None):
+    def __init__(self, message: str, status_code: Optional[int] = None):
         self.status_code = status_code
         super().__init__(message)
 
@@ -18,7 +20,7 @@ class ScrapingError(SurfhubError):
 class SerpApiError(SurfhubError):
     """Raised when a SERP API call fails."""
 
-    def __init__(self, message: str, status_code: int = None):
+    def __init__(self, message: str, status_code: Optional[int] = None):
         self.status_code = status_code
         super().__init__(message)
 
@@ -32,16 +34,17 @@ class RateLimitError(SurfhubError):
 class InsufficientFundsError(SurfhubError):
     """Raised when the API returns an insufficient funds, credits, or quota error."""
 
-    def __init__(self, message: str, status_code: Optional[int] = None):
+    def __init__(self, message: str, status_code: Optional[int] = None, raw_body: str = ""):
         self.status_code = status_code
+        self.raw_body = raw_body
         super().__init__(message)
 
 
 _INSUFFICIENT_FUNDS_KEYWORDS = [
     "insufficient funds",
-    "insufficient balance",
+    "insufficient balance",  # matches natural language errors (with space)
     "insufficient credits",
-    "insufficientbalance",
+    "insufficientbalance",  # matches concatenated key names (e.g. InsufficientBalanceError)
     "quota exceeded",
     "exceeded your quota",
     "out of credits",
@@ -63,6 +66,11 @@ _INSUFFICIENT_FUNDS_KEYWORDS = [
 
 
 def is_insufficient_funds(status_code: int, body: str) -> bool:
+    """Check HTTP-level response for insufficient funds signals.
+
+    Returns True based on status code and body keyword matching.
+    Only looks at HTTP status codes 402, 403, 429, and 432.
+    """
     if status_code == 402:
         return True
     if status_code in (403, 429, 432):
@@ -72,6 +80,13 @@ def is_insufficient_funds(status_code: int, body: str) -> bool:
 
 
 def check_insufficient_funds(message: str, status_code: Optional[int] = None):
+    """Check an in-body error message for insufficient funds signals and raise if found.
+
+    Unlike is_insufficient_funds() which gates on HTTP status codes (402/403/429/432),
+    this function matches keywords regardless of HTTP status code. This is needed for
+    providers (SerpApi, Google CSE, ValueSerp, SerperDev) that return quota/billing
+    errors embedded in a 200 HTTP response body.
+    """
     if status_code == 402:
         raise InsufficientFundsError(message, status_code=status_code)
     msg_lower = message.lower()
@@ -79,9 +94,10 @@ def check_insufficient_funds(message: str, status_code: Optional[int] = None):
         raise InsufficientFundsError(message, status_code=status_code)
 
 
-def raise_for_insufficient_funds(resp):
+def raise_for_insufficient_funds(resp: httpx.Response) -> None:
     if is_insufficient_funds(resp.status_code, resp.text):
         raise InsufficientFundsError(
-            f"Insufficient funds or quota exceeded (status {resp.status_code})",
+            f"Insufficient funds or quota exceeded (status {resp.status_code}): {resp.text[:200]}",
             status_code=resp.status_code,
+            raw_body=resp.text,
         )

@@ -6,13 +6,19 @@ from surfhub.errors import (
     is_insufficient_funds,
     check_insufficient_funds,
     ScrapingError,
+    SerpApiError,
 )
 from surfhub.scraper import ZyteScraper
+from surfhub.scraper.firecrawl import FirecrawlScraper
 from surfhub.serper.brave import BraveSearch
 from surfhub.serper.serpapi import SerpApi as SerpApiProvider
 from surfhub.serper.serper import SerperDev
 from surfhub.serper.google import GoogleCustomSearch
 from surfhub.serper.valueserp import ValueSerp
+from surfhub.serper.perplexity import PerplexitySearch
+from surfhub.serper.exa import ExaSearch
+from surfhub.serper.jina import JinaSearch
+from surfhub.serper.tavily import Tavily
 
 
 class TestIsInsufficientFunds:
@@ -192,7 +198,6 @@ class TestSerpApiProviderInsufficientFunds:
                 return_value=httpx.Response(200, json={"error": "invalid api key"})
             )
             serp = SerpApiProvider(api_key="test_key")
-            from surfhub.errors import SerpApiError
             with pytest.raises(SerpApiError, match="invalid api key"):
                 serp.serp("test query")
 
@@ -217,7 +222,6 @@ class TestSerperDevInsufficientFunds:
                 )
             )
             serp = SerperDev(api_key="test_key")
-            from surfhub.errors import SerpApiError
             with pytest.raises(SerpApiError, match="bad request"):
                 serp.serp("test query")
 
@@ -242,7 +246,6 @@ class TestGoogleCustomSearchInsufficientFunds:
                 )
             )
             serp = GoogleCustomSearch(api_key="cx:key")
-            from surfhub.errors import SerpApiError
             with pytest.raises(SerpApiError, match="invalid api key"):
                 serp.serp("test query")
 
@@ -279,7 +282,6 @@ class TestValueSerpInsufficientFunds:
                 )
             )
             serp = ValueSerp(api_key="test_key")
-            from surfhub.errors import SerpApiError
             with pytest.raises(SerpApiError, match="invalid api key"):
                 serp.serp("test query")
 
@@ -326,7 +328,6 @@ class TestRealApiPatterns:
                     json={"error": {"message": "Insufficient credits", "type": "billing_error"}},
                 )
             )
-            from surfhub.serper.perplexity import PerplexitySearch
             serp = PerplexitySearch(api_key="test_key")
             with pytest.raises(InsufficientFundsError):
                 serp.serp("test query")
@@ -340,7 +341,6 @@ class TestRealApiPatterns:
                     json={"success": False, "error": "Payment required to access this resource."},
                 )
             )
-            from surfhub.scraper.firecrawl import FirecrawlScraper
             scraper = FirecrawlScraper(api_key="test_key")
             with pytest.raises(InsufficientFundsError):
                 scraper.scrape("http://example.com")
@@ -354,7 +354,6 @@ class TestRealApiPatterns:
                     json={"requestId": "abc123", "error": "Account credits exhausted", "tag": "NO_MORE_CREDITS"},
                 )
             )
-            from surfhub.serper.exa import ExaSearch
             serp = ExaSearch(api_key="test_key")
             with pytest.raises(InsufficientFundsError):
                 serp.serp("test query")
@@ -375,7 +374,6 @@ class TestRealApiPatterns:
                     },
                 )
             )
-            from surfhub.serper.jina import JinaSearch
             serp = JinaSearch(api_key="test_key")
             with pytest.raises(InsufficientFundsError):
                 serp.serp("test query")
@@ -389,7 +387,6 @@ class TestRealApiPatterns:
                     json={"error": "plan limit exceeded"},
                 )
             )
-            from surfhub.serper.tavily import Tavily
             serp = Tavily(api_key="test_key")
             with pytest.raises(InsufficientFundsError):
                 serp.serp("test query")
@@ -403,7 +400,6 @@ class TestRealApiPatterns:
                     json={"requestId": "xyz789", "error": "Key budget exceeded", "tag": "API_KEY_BUDGET_EXCEEDED"},
                 )
             )
-            from surfhub.serper.exa import ExaSearch
             serp = ExaSearch(api_key="test_key")
             with pytest.raises(InsufficientFundsError):
                 serp.serp("test query")

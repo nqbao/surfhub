@@ -79,8 +79,11 @@ class SerpApi(BaseSerper):
     def parse_result(self, resp: dict) -> List[SerpResult]:
         # Check for errors
         if "error" in resp:
-            check_insufficient_funds(resp["error"])
-            raise SerpApiError(f"SerpApi error: {resp['error']}")
+            error_msg = resp["error"]
+            if isinstance(error_msg, dict):
+                error_msg = error_msg.get("message", str(error_msg))
+            check_insufficient_funds(error_msg)
+            raise SerpApiError(f"SerpApi error: {error_msg}")
 
         # Parse organic results
         organic_results = resp.get("organic_results", [])

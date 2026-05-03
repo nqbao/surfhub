@@ -109,6 +109,10 @@ class BaseSerper(SerpApi):
             else:
                 resp = client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
             resp.raise_for_status()
+        # Insufficient fund detection is best-effort at the HTTP level:
+        # only httpx.HTTPStatusError is intercepted. If a provider enforces
+        # quota via connection resets or other transport failures, those are
+        # not caught here.
         except httpx.HTTPStatusError as e:
             raise_for_insufficient_funds(e.response)
             raise
@@ -124,6 +128,10 @@ class BaseSerper(SerpApi):
             else:
                 resp = await client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
             resp.raise_for_status()
+        # Insufficient fund detection is best-effort at the HTTP level:
+        # only httpx.HTTPStatusError is intercepted. If a provider enforces
+        # quota via connection resets or other transport failures, those are
+        # not caught here.
         except httpx.HTTPStatusError as e:
             raise_for_insufficient_funds(e.response)
             raise
