@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from .model import SerpResult, BaseSerper
-from surfhub.errors import SerpApiError
+from surfhub.errors import SerpApiError, check_insufficient_funds
 
 
 class ValueSerp(BaseSerper):
@@ -63,6 +63,7 @@ class ValueSerp(BaseSerper):
 
     def parse_result(self, resp: dict) -> List[SerpResult]:
         if not resp["request_info"]["success"]:
+            check_insufficient_funds(resp["request_info"]["message"])
             raise SerpApiError(resp["request_info"]["message"])
 
         return [

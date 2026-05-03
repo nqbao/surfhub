@@ -1,7 +1,7 @@
 from typing import List
 from datetime import datetime
 from .model import SerpResult, BaseSerper
-from surfhub.errors import SerpApiError
+from surfhub.errors import SerpApiError, check_insufficient_funds
 
 
 class SerpApi(BaseSerper):
@@ -79,6 +79,7 @@ class SerpApi(BaseSerper):
     def parse_result(self, resp: dict) -> List[SerpResult]:
         # Check for errors
         if "error" in resp:
+            check_insufficient_funds(resp["error"])
             raise SerpApiError(f"SerpApi error: {resp['error']}")
 
         # Parse organic results

@@ -4,6 +4,15 @@ from pydantic import BaseModel, field_validator
 from typing import Optional, List, Dict
 from enum import Enum
 import re
+from surfhub.errors import is_insufficient_funds, InsufficientFundsError
+
+
+def _check_response_for_insufficient_funds(resp: httpx.Response):
+    if is_insufficient_funds(resp.status_code, resp.text):
+        raise InsufficientFundsError(
+            f"Insufficient funds or quota exceeded (status {resp.status_code})",
+            status_code=resp.status_code,
+        )
 
 
 class TimeRange(str, Enum):
@@ -102,22 +111,30 @@ class BaseSerper(SerpApi):
 
     def _fetch_and_parse(self, client: httpx.Client, params: dict):
         headers = {**self.request_headers}
-        if self.request_method == "POST":
-            resp = client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
-        else:
-            resp = client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
-        resp.raise_for_status()
+        try:
+            if self.request_method == "POST":
+                resp = client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
+            else:
+                resp = client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            _check_response_for_insufficient_funds(e.response)
+            raise
         data = resp.json()
         items = self.parse_result(data)
         return items, data
 
     async def _async_fetch_and_parse(self, client: httpx.AsyncClient, params: dict):
         headers = {**self.request_headers}
-        if self.request_method == "POST":
-            resp = await client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
-        else:
-            resp = await client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
-        resp.raise_for_status()
+        try:
+            if self.request_method == "POST":
+                resp = await client.post(self.endpoint, json=params, headers=headers, timeout=self.timeout)
+            else:
+                resp = await client.get(self.endpoint, params=params, headers=headers, timeout=self.timeout)
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            _check_response_for_insufficient_funds(e.response)
+            raise
         data = resp.json()
         items = self.parse_result(data)
         return items, data

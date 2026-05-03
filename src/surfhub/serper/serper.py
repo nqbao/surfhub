@@ -1,6 +1,6 @@
 from typing import List
 from .model import SerpResult, BaseSerper
-from surfhub.errors import SerpApiError
+from surfhub.errors import SerpApiError, check_insufficient_funds
 
 
 class SerperDev(BaseSerper):
@@ -41,6 +41,9 @@ class SerperDev(BaseSerper):
 
     def parse_result(self, resp: dict) -> List[SerpResult]:
         if resp.get("statusCode", 200) != 200:
+            check_insufficient_funds(
+                resp.get("message", "Unknown error"), status_code=resp.get("statusCode")
+            )
             raise SerpApiError(
                 f"Serper API error: {resp.get('message', 'Unknown error')}", status_code=resp.get("statusCode")
             )

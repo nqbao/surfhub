@@ -1,7 +1,7 @@
 import abc
 import httpx
 from pydantic import BaseModel
-from surfhub.errors import ScrapingError
+from surfhub.errors import ScrapingError, InsufficientFundsError, is_insufficient_funds
 
 
 class ScraperOptions(BaseModel):
@@ -121,6 +121,11 @@ class BaseScraper(Scraper):
 
     def validate_response(self, resp: httpx.Response):
         if resp.status_code != 200:
+            if is_insufficient_funds(resp.status_code, resp.text):
+                raise InsufficientFundsError(
+                    f"Insufficient funds or quota exceeded (status {resp.status_code})",
+                    status_code=resp.status_code,
+                )
             raise ScrapingError("Unexpected status code: " + str(resp.status_code), status_code=resp.status_code)
 
     def is_retriable_error(self, ex: Exception, resp: httpx.Response):

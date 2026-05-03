@@ -24,3 +24,39 @@ class RateLimitError(SurfhubError):
     """Raised when the target service throttles or blocks the request."""
 
     pass
+
+
+class InsufficientFundsError(SurfhubError):
+    """Raised when the API returns an insufficient funds, credits, or quota error."""
+
+    def __init__(self, message: str, status_code: int = None):
+        self.status_code = status_code
+        super().__init__(message)
+
+
+_INSUFFICIENT_FUNDS_KEYWORDS = [
+    "insufficient",
+    "quota exceeded",
+    "exceeded your quota",
+    "out of credits",
+    "no credits",
+    "quota limit",
+    "payment required",
+    "billing",
+    "balance",
+]
+
+
+def is_insufficient_funds(status_code: int, body: str) -> bool:
+    if status_code == 402:
+        return True
+    if status_code in (403, 429):
+        body_lower = body.lower()
+        return any(kw in body_lower for kw in _INSUFFICIENT_FUNDS_KEYWORDS)
+    return False
+
+
+def check_insufficient_funds(message: str, status_code: int = None):
+    msg_lower = message.lower()
+    if any(kw in msg_lower for kw in _INSUFFICIENT_FUNDS_KEYWORDS):
+        raise InsufficientFundsError(message, status_code=status_code)
