@@ -1,57 +1,67 @@
-from .model import Scraper, ScraperOptions, ScraperResponse
 import httpx
+
+from surfhub.errors import ScrapingError
+
+from ._public_http import PublicAsyncHTTPTransport, PublicHTTPTransport
+from .model import Scraper, ScraperOptions, ScraperResponse
 
 
 class LocalScraper(Scraper):
+    """Scrape public HTTP(S) URLs. Enable trusted mode for browsers or private networks."""
+
     _http_proxy: str = ""
     _https_proxy: str = ""
     _verify_ca: bool = True
 
-    """
-    A scraper that runs on local
-    """
+    def __init__(self, *, allow_private_network: bool = False):
+        self._allow_private_network = allow_private_network
 
-    def _get_proxies(self) -> dict | None:
-        if self.http_proxy or self.https_proxy:
-            return {
-                "http://": self.http_proxy,
-                "https://": self.https_proxy,
+    @property
+    def allow_private_network(self) -> bool:
+        return self._allow_private_network
+
+    def _client_options(self, transport_type, public_transport_type):
+        options = {"timeout": self.timeout, "follow_redirects": True}
+        if self.allow_private_network:
+            options["verify"] = self.verify_ca
+            options["mounts"] = {
+                scheme: transport_type(proxy=proxy, verify=self.verify_ca)
+                for scheme, proxy in (("http://", self.http_proxy), ("https://", self.https_proxy))
+                if proxy
             }
-        return None
+        else:
+            if self.http_proxy or self.https_proxy:
+                raise ScrapingError("A local proxy requires allow_private_network=True")
+            options["transport"] = public_transport_type(verify=self.verify_ca)
+            options["trust_env"] = False
+        return options
+
+    def _check_browser_allowed(self):
+        if not self.allow_private_network:
+            raise ScrapingError("Local browser mode requires allow_private_network=True and trusted content")
 
     def scrape(self, url: str, options: ScraperOptions = None, use_browser: bool = False) -> ScraperResponse:
         if use_browser:
+            self._check_browser_allowed()
             return self._scrape_with_browser(url, options)
 
-        proxies = self._get_proxies()
-        resp = httpx.get(
-            url,
-            timeout=self.timeout,
-            proxy=proxies,
-            verify=self.verify_ca,
-        )
-
-        return ScraperResponse(
-            content=resp.content,
-            content_type=resp.headers.get("content-type", ""),
-            encoding=resp.encoding or "utf-8",
-            status_code=resp.status_code,
-            final_url=str(resp.url),
-        )
+        options = self._client_options(httpx.HTTPTransport, PublicHTTPTransport)
+        with httpx.Client(**options) as client:
+            return self._http_response(client.get(url))
 
     async def async_scrape(
         self, url: str, options: ScraperOptions = None, use_browser: bool = False
     ) -> ScraperResponse:
         if use_browser:
+            self._check_browser_allowed()
             return await self._async_scrape_with_browser(url, options)
 
-        proxies = self._get_proxies()
-        async with httpx.AsyncClient(proxy=proxies, verify=self.verify_ca) as client:
-            resp = await client.get(
-                url,
-                timeout=self.timeout,
-            )
+        options = self._client_options(httpx.AsyncHTTPTransport, PublicAsyncHTTPTransport)
+        async with httpx.AsyncClient(**options) as client:
+            return self._http_response(await client.get(url))
 
+    @staticmethod
+    def _http_response(resp: httpx.Response) -> ScraperResponse:
         return ScraperResponse(
             content=resp.content,
             content_type=resp.headers.get("content-type", ""),

@@ -1,5 +1,6 @@
 from surfhub.cache import Cache
 from surfhub.utils import hash_dict
+from .local import LocalScraper
 from .model import Scraper, ScraperResponse, ScraperOptions
 
 
@@ -28,6 +29,8 @@ class CachedScraper(Scraper):
         }
         if options:
             params["options"] = options.model_dump()
+        if isinstance(self._inner, LocalScraper):
+            params["allow_private_network"] = self._inner.allow_private_network
         return hash_dict(params)
 
     def scrape(self, url: str, options: ScraperOptions = None, use_browser: bool = False) -> ScraperResponse:

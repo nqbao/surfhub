@@ -53,6 +53,8 @@ s = get_scraper("browserless", api_key="yourkey")
 s.scrape("https://example.com")
 ```
 
+`get_scraper("local")` follows HTTP redirects and connects only to public IP addresses. If you use it in a service, apply the service's outbound network policy too. For trusted URLs and content, use `get_scraper("local", allow_private_network=True)` to enable private destinations, local browser mode, or configured proxies.
+
 ## Caching
 
 Both SERP and Scraper providers support optional caching via `FileCache`:
@@ -65,6 +67,8 @@ cache = FileCache("cache.db")
 s = get_serper("serper", api_key="yourkey", cache=cache)
 s = get_scraper("browserless", api_key="yourkey", cache=cache)
 ```
+
+`FileCache` stores Surfhub responses, bytes, and JSON-compatible values. Existing DiskCache entries are treated as cache misses and repopulate on demand.
 
 ## Options
 
