@@ -12,9 +12,18 @@ class SurfhubError(Exception):
 class ScrapingError(SurfhubError):
     """Raised when a scraping operation fails."""
 
-    def __init__(self, message: str, status_code: Optional[int] = None):
+    def __init__(self, message: str, status_code: Optional[int] = None, raw_body: str = ""):
         self.status_code = status_code
+        self.raw_body = raw_body
         super().__init__(message)
+
+
+class ResponseTooLargeError(ScrapingError):
+    """Raised when a scrape exceeds its configured response size limit."""
+
+    def __init__(self, max_bytes: int):
+        self.max_bytes = max_bytes
+        super().__init__(f"Scraper response exceeds the {max_bytes}-byte limit")
 
 
 class SerpApiError(SurfhubError):

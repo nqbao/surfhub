@@ -189,15 +189,19 @@ def test_jina_scraper_empty_content():
 
 
 @pytest.mark.anyio
-async def test_jina_scraper_async():
+@pytest.mark.parametrize("retry_first", [False, True])
+async def test_jina_scraper_async(retry_first):
     with respx.mock:
-        respx.get("https://r.jina.ai/https://async.example.com").mock(
-            return_value=httpx.Response(
+        responses = [httpx.Response(503)] if retry_first else []
+        responses.append(
+            httpx.Response(
                 200,
                 headers={"content-type": "text/plain"},
                 text="async jina content",
             )
         )
+        route = respx.get("https://r.jina.ai/https://async.example.com").mock(side_effect=responses)
         scraper = JinaScraper(api_key="test_key")
         resp = await scraper.async_scrape("https://async.example.com")
         assert resp.content.decode(resp.encoding) == "async jina content"
+        assert route.call_count == len(responses)

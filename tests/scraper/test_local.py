@@ -7,6 +7,8 @@ import httpx
 import pytest
 import respx
 
+from surfhub import get_scraper
+from surfhub._version import __version__
 from surfhub.errors import ScrapingError
 from surfhub.scraper._public_http import _PublicSyncBackend
 from surfhub.scraper.local import LocalScraper
@@ -71,7 +73,7 @@ class TestLocalScraperHttp:
 
     def test_basic(self):
         with respx.mock:
-            respx.get("https://example.com").mock(
+            route = respx.get("https://example.com").mock(
                 return_value=httpx.Response(200, text="<html>hello</html>"),
             )
             scraper = LocalScraper()
@@ -79,6 +81,7 @@ class TestLocalScraperHttp:
             assert resp.content.decode() == "<html>hello</html>"
             assert resp.status_code == 200
             assert resp.final_url == "https://example.com"
+            assert route.calls.last.request.headers["User-Agent"] == f"surfhub/{__version__} (https://github.com/nqbao/surfhub)"
 
     def test_use_browser_false_uses_http(self):
         with respx.mock:
@@ -92,12 +95,14 @@ class TestLocalScraperHttp:
     @pytest.mark.anyio
     async def test_async(self):
         with respx.mock:
-            respx.get("https://example.com").mock(
+            route = respx.get("https://example.com").mock(
                 return_value=httpx.Response(200, text="<html>async</html>"),
             )
-            scraper = LocalScraper()
+            user_agent = "ResearchAgent/1.0 (https://example.com/contact)"
+            scraper = get_scraper("local", user_agent=user_agent)
             resp = await scraper.async_scrape("https://example.com")
             assert resp.content.decode() == "<html>async</html>"
+            assert route.calls.last.request.headers["User-Agent"] == user_agent
 
 
 class TestLocalScraperBrowser:
@@ -112,6 +117,7 @@ class TestLocalScraperBrowser:
         mock_page = MagicMock()
         mock_page.url = url
         mock_page.content.return_value = html
+        mock_page.goto.return_value.status = 200
         mock_browser.new_page.return_value = mock_page
         mock_playwright.chromium.launch.return_value = mock_browser
         mock_sync_api.sync_playwright.return_value.__enter__.return_value = mock_playwright
@@ -125,6 +131,7 @@ class TestLocalScraperBrowser:
         mock_page.url = url
         mock_page.content = AsyncMock(return_value=html)
         mock_page.goto = AsyncMock()
+        mock_page.goto.return_value.status = 200
         mock_browser.new_page = AsyncMock(return_value=mock_page)
         mock_browser.close = AsyncMock()
         mock_playwright.chromium.launch = AsyncMock(return_value=mock_browser)
@@ -216,6 +223,7 @@ class TestLocalScraperBrowser:
         _, mock_async_api = self._install_mock_playwright()
         try:
             mock_page = self._setup_mock_async(mock_async_api)
+            mock_page.goto.return_value.status = 201
 
             scraper = LocalScraper(allow_private_network=True)
             resp = await scraper.async_scrape("https://example.com", use_browser=True)
@@ -223,7 +231,7 @@ class TestLocalScraperBrowser:
             assert resp.content.decode() == "<html>async rendered</html>"
             assert resp.content_type == "text/html"
             assert resp.encoding == "utf-8"
-            assert resp.status_code == 200
+            assert resp.status_code == 201
             assert resp.final_url == "https://example.com"
             mock_page.goto.assert_awaited_once_with("https://example.com", wait_until="load", timeout=30000)
         finally:

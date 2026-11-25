@@ -1,4 +1,4 @@
-from .model import Scraper
+from .model import MarkdownEngine, Scraper
 from .local import LocalScraper
 from .browserless import BrowserlessScraper
 from .zyte import ZyteScraper
@@ -11,7 +11,16 @@ from .cached import CachedScraper
 from surfhub.cache.base import Cache
 
 
-def get_scraper(provider, api_key=None, cache: Cache = None, **kwargs) -> Scraper:
+def get_scraper(
+    provider,
+    api_key=None,
+    cache: Cache = None,
+    *,
+    max_bytes: int | None = None,
+    markdown_engine: MarkdownEngine | None = None,
+    **kwargs,
+) -> Scraper:
+    kwargs["markdown_engine"] = markdown_engine
     if provider == "local":
         scraper = LocalScraper(**kwargs)
     elif provider == "browserless":
@@ -31,6 +40,8 @@ def get_scraper(provider, api_key=None, cache: Cache = None, **kwargs) -> Scrape
     else:
         raise ValueError("Unknown scraper provider")
 
+    if max_bytes is not None:
+        scraper.max_bytes = max_bytes
     if cache:
         return CachedScraper(scraper, cache)
     return scraper

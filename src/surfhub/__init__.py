@@ -3,7 +3,7 @@ from .serper.model import SerpRequestOptions, SerpResult
 from .serper.cached import CachedSerper
 from .scraper import get_scraper
 from .scraper.cached import CachedScraper
-from .errors import SurfhubError, ScrapingError, SerpApiError, RateLimitError, InsufficientFundsError
+from .errors import SurfhubError, ScrapingError, ResponseTooLargeError, SerpApiError, RateLimitError, InsufficientFundsError
 
 __all__ = [
     "get_serper",
@@ -14,6 +14,7 @@ __all__ = [
     "CachedScraper",
     "SurfhubError",
     "ScrapingError",
+    "ResponseTooLargeError",
     "SerpApiError",
     "RateLimitError",
     "InsufficientFundsError",

@@ -1,4 +1,4 @@
-from .model import BaseScraper, ScraperResponse
+from .model import BaseScraper, MarkdownEngine, ScraperResponse
 import httpx
 
 
@@ -15,8 +15,10 @@ class ScrapingBeeScraper(BaseScraper):
 
     default_api_url = "https://app.scrapingbee.com/api/v1/"
 
-    def __init__(self, api_key: str = None, premium_proxy: bool = False):
-        super().__init__(api_key=api_key)
+    def __init__(
+        self, api_key: str = None, premium_proxy: bool = False, *, markdown_engine: MarkdownEngine | None = None
+    ):
+        super().__init__(api_key=api_key, markdown_engine=markdown_engine)
         self._premium_proxy = premium_proxy
 
     def prepare_request(self, url: str, options=None, use_browser: bool = False) -> httpx.Request:

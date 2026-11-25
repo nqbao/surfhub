@@ -5,6 +5,8 @@ from surfhub.cache.base import Cache
 from surfhub.scraper.local import LocalScraper
 from surfhub.scraper.cached import CachedScraper
 from surfhub.scraper import get_scraper
+from surfhub.scraper.model import ScraperResponse
+from surfhub.errors import ScrapingError
 
 
 class DictCache(Cache):
@@ -25,6 +27,42 @@ class DictCache(Cache):
 
 
 class TestCachedScraper:
+    @pytest.mark.anyio
+    async def test_shared_cache_uses_the_calling_scrapers_markdown_engine(self):
+        cache = DictCache()
+        url = "https://example.com"
+        first = get_scraper("local", cache=cache, markdown_engine=lambda _: "# First")
+        second = get_scraper("local", cache=cache, markdown_engine=lambda _: "# Second")
+
+        with respx.mock:
+            route = respx.get(url).respond(200, headers={"Content-Type": "text/html"}, text="<h1>Page</h1>")
+            first_page = first.scrape(url)
+            second_page = await second.async_scrape(url)
+
+        assert first_page.markdown() == "# First"
+        assert second_page.markdown() == "# Second"
+        assert route.call_count == 1
+
+    @pytest.mark.anyio
+    async def test_old_and_new_errors_are_not_served_from_cache(self):
+        cache = DictCache()
+        scraper = get_scraper("local", cache=cache)
+        scraper.retries = 1
+        assert scraper.inner.retries == 1
+        url = "https://example.com"
+        key = scraper._cache_key(url)
+        old_error = ScraperResponse(content=b"old error", status_code=503, final_url=url)
+        cache.set(key, old_error)
+
+        with respx.mock:
+            route = respx.get(url).mock(side_effect=[httpx.Response(429), httpx.Response(200)])
+            with pytest.raises(ScrapingError):
+                scraper.scrape(url)
+            assert cache.get(key) == old_error
+            assert (await scraper.async_scrape(url)).status_code == 200
+            assert scraper.scrape(url).status_code == 200
+            assert route.call_count == 2
+
     def test_cache_miss_fetches_and_caches(self):
         cache = DictCache()
         inner = LocalScraper()
@@ -46,8 +84,6 @@ class TestCachedScraper:
         cached = CachedScraper(inner, cache)
 
         key = cached._cache_key("https://example.com")
-        from surfhub.scraper.model import ScraperResponse
-
         pre_cached = ScraperResponse(
             content=b"<html>cached</html>",
             content_type="text/html",
@@ -76,6 +112,20 @@ class TestCachedScraper:
         key1 = cached._cache_key("https://example.com", use_browser=False)
         key2 = cached._cache_key("https://example.com", use_browser=True)
         assert key1 != key2
+
+    def test_custom_user_agent_has_its_own_cached_response(self):
+        cache = DictCache()
+        url = "https://example.com"
+        default = get_scraper("local", cache=cache)
+        custom = get_scraper("local", cache=cache, user_agent="ResearchAgent/1.0")
+
+        with respx.mock:
+            route = respx.get(url).mock(side_effect=[httpx.Response(403), httpx.Response(200)])
+            with pytest.raises(ScrapingError):
+                default.scrape(url)
+            assert custom.scrape(url).status_code == 200
+            assert custom.scrape(url).status_code == 200
+            assert route.call_count == 2
 
     def test_factory_with_cache_returns_cached_scraper(self):
         cache = DictCache()

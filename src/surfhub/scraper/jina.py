@@ -1,4 +1,4 @@
-from .model import BaseScraper, ScraperResponse
+from .model import BaseScraper, MarkdownEngine, ScraperResponse
 import httpx
 
 VALID_FORMATS = {"html", "markdown", "text"}
@@ -17,8 +17,8 @@ class JinaScraper(BaseScraper):
 
     default_api_url = "https://r.jina.ai"
 
-    def __init__(self, api_key: str = None, format: str = "html"):
-        super().__init__(api_key=api_key)
+    def __init__(self, api_key: str = None, format: str = "html", *, markdown_engine: MarkdownEngine | None = None):
+        super().__init__(api_key=api_key, markdown_engine=markdown_engine)
         if format not in VALID_FORMATS:
             raise ValueError(f"Invalid format '{format}'. Must be one of: {', '.join(sorted(VALID_FORMATS))}")
         self._format = format

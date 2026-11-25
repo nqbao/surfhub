@@ -31,5 +31,5 @@ class ZyteScraper(BaseScraper):
             content_type="text/html",
             encoding="utf-8",
             final_url=url,
-            status_code=resp.status_code,
+            status_code=data.get("statusCode", resp.status_code),
         )

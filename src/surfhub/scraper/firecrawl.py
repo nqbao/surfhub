@@ -38,5 +38,5 @@ class FirecrawlScraper(BaseScraper):
             content_type="text/markdown",
             encoding="utf-8",
             final_url=final_url,
-            status_code=resp.status_code,
+            status_code=result.get("metadata", {}).get("statusCode", resp.status_code),
         )
